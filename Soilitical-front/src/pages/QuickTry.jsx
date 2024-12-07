@@ -1,17 +1,26 @@
 import React, { useState } from "react";
+import axios from "axios";
 
 const QuickTry = () => {
+	const SOIL_TYPE_CHOICES = [
+		{ value: "loamy soil", label: "Loamy Soil" },
+		{ value: "clayey soil - loamy soil", label: "Clayey Soil - Loamy Soil" },
+		{ value: "well-drained - loamy soil", label: "Well-drained - Loamy Soil" },
+		{ value: "sandy clay", label: "Sandy Clay" },
+		{ value: "sandy loam - silt loam", label: "Sandy Loam - Silt Loam" }
+	];
+
 	const [formData, setFormData] = useState({
+		soil_type: "loamy soil",
 		n_value: "",
 		p_value: "",
 		k_value: "",
-		ph_values: "",
-		humidity: "",
+		ec_value: "",
 		temperature: ""
 	});
 	const [prediction, setPrediction] = useState(null);
 	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState(null);
+	const [error, setError] = useState("");
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -21,38 +30,19 @@ const QuickTry = () => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setLoading(true);
-		setError(null);
-		setPrediction(null);
+		setError("");
 
 		try {
-			const requestBody = {
-				N: parseFloat(formData.n_value) || 0,
-				P: parseFloat(formData.p_value) || 0,
-				K: parseFloat(formData.k_value) || 0,
-				Humidity: parseFloat(formData.humidity) || 0,
-				Temp: parseFloat(formData.temperature) || 0,
-				PH: parseFloat(formData.ph_values) || 0
-			};
-
-			const response = await fetch(
-				"https://apisoilitical.pythonanywhere.com/predict/",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json"
-					},
-					body: JSON.stringify(requestBody)
-				}
+			const response = await axios.post(
+				import.meta.env.VITE_MODEL_URL,
+				formData
 			);
-
-			if (!response.ok) {
-				throw new Error("Failed to fetch prediction. Please try again.");
-			}
-
-			const data = await response.json();
-			setPrediction(data.prediction);
+			setPrediction(response.data.prediction);
 		} catch (err) {
-			setError(err.message);
+			setError(
+				err.response?.data?.message ||
+					"An error occurred while making the prediction, Please try"
+			);
 		} finally {
 			setLoading(false);
 		}
@@ -60,12 +50,14 @@ const QuickTry = () => {
 
 	const generateRandomValuesAndSubmit = () => {
 		const randomFormData = {
-			n_value: Math.floor(Math.random() * 50) + 15,
-			p_value: Math.floor(Math.random() * 50) + 15,
-			k_value: Math.floor(Math.random() * 50) + 15,
-			ph_values: (Math.random() * 13 + 1).toFixed(1),
-			humidity: Math.floor(Math.random() * 101),
-			temperature: Math.floor(Math.random() * 66)
+			soil_type:
+				SOIL_TYPE_CHOICES[Math.floor(Math.random() * SOIL_TYPE_CHOICES.length)]
+					.value,
+			ec_value: (Math.random() * 4).toFixed(2),
+			temperature: (Math.random() * 25 + 10).toFixed(1),
+			n_value: (Math.random() * 40 + 20).toFixed(2),
+			p_value: (Math.random() * 20 + 10).toFixed(2),
+			k_value: (Math.random() * 25 + 15).toFixed(2)
 		};
 		setFormData(randomFormData);
 		setTimeout(() => handleSubmit({ preventDefault: () => {} }), 0);
@@ -73,11 +65,11 @@ const QuickTry = () => {
 
 	const resetForm = () => {
 		setFormData({
+			soil_type: "loamy soil",
 			n_value: "",
 			p_value: "",
 			k_value: "",
-			ph_values: "",
-			humidity: "",
+			ec_value: "",
 			temperature: ""
 		});
 		setPrediction(null);
@@ -96,42 +88,108 @@ const QuickTry = () => {
 						Your Personal Agriculture AI-Assistant
 					</p>
 					<form onSubmit={handleSubmit} className="space-y-4">
-						{[
-							{ name: "n_value", label: "N (kg/ha)", min: 15 },
-							{ name: "p_value", label: "P (kg/ha)", min: 15 },
-							{ name: "k_value", label: "K (kg/ha)", min: 15 },
-							{ name: "ph_values", label: "PH", min: 1, max: 14, step: 0.1 },
-							{ name: "humidity", label: "Humidity (%)", min: 0, max: 100 },
-							{
-								name: "temperature",
-								label: "Temperature (°C)",
-								min: 0,
-								max: 65
-							}
-						].map(({ name, label, ...props }) => (
-							<div key={name} className="space-y-2">
-								<label
-									htmlFor={name}
-									className="block font-medium text-xl text-gray-300"
-								>
-									{label}
-									<span className="text-gray-400 text-xl">
-										{" "}
-										(e.g., {props.min}-{props.max || "varies"})
-									</span>
-								</label>
-								<input
-									type="number"
-									id={name}
-									name={name}
-									value={formData[name]}
-									onChange={handleChange}
-									className="block w-full px-4 py-2 text-black rounded-md shadow-sm focus:ring focus:ring-green-500"
-									{...props}
-									required
-								/>
-							</div>
-						))}
+						<div className="mb-4">
+							<label className="block text-white mb-2 text-lg">Soil Type</label>
+							<select
+								name="soil_type"
+								value={formData.soil_type}
+								onChange={handleChange}
+								className="w-full p-2 border rounded bg-gray-700 text-white"
+							>
+								{SOIL_TYPE_CHOICES.map((option) => (
+									<option
+										key={option.value}
+										value={option.value}
+										className="text-black"
+									>
+										{option.label}
+									</option>
+								))}
+							</select>
+						</div>
+
+						<div className="mb-4">
+							<label className="block text-white mb-2 text-lg">
+								Nitrogen (N)
+							</label>
+							<input
+								type="number"
+								name="n_value"
+								value={formData.n_value}
+								onChange={handleChange}
+								min="0"
+								step="any"
+								required
+								className="w-full p-2 border rounded bg-gray-700 text-white"
+							/>
+						</div>
+
+						<div className="mb-4">
+							<label className="block text-white mb-2 text-lg">
+								Phosphorous (P)
+							</label>
+							<input
+								type="number"
+								name="p_value"
+								value={formData.p_value}
+								onChange={handleChange}
+								min="0"
+								step="any"
+								required
+								className="w-full p-2 border rounded bg-gray-700 text-white"
+							/>
+						</div>
+
+						<div className="mb-4">
+							<label className="block text-white mb-2 text-lg">
+								Potassium (K)
+							</label>
+							<input
+								type="number"
+								name="k_value"
+								value={formData.k_value}
+								onChange={handleChange}
+								min="0"
+								step="any"
+								required
+								className="w-full p-2 border rounded bg-gray-700 text-white"
+							/>
+						</div>
+
+						<div className="mb-4">
+							<label className="block text-white mb-2 text-lg">
+								Electrical Conductivity (EC)
+							</label>
+							<input
+								type="number"
+								name="ec_value"
+								value={formData.ec_value}
+								onChange={handleChange}
+								min="0"
+								max="14"
+								step="any"
+								required
+								className="w-full p-2 border rounded bg-gray-700 text-white"
+							/>
+						</div>
+
+						<div className="mb-4">
+							<label className="block text-white mb-2 text-lg">
+								Temperature (°C)
+							</label>
+							<input
+								type="number"
+								name="temperature"
+								value={formData.temperature}
+								onChange={handleChange}
+								min="-50"
+								max="100"
+								step="any"
+								required
+								className="w-full p-2 border rounded bg-gray-700 text-white"
+							/>
+						</div>
+
 						<div className="flex justify-between items-center mt-6">
 							<button
 								type="submit"
@@ -170,10 +228,9 @@ const QuickTry = () => {
 							<h3 className="text-xl font-semibold mb-2">Prediction Result:</h3>
 							<p className="text-2xl">{prediction}</p>
 							<img
-								id="img"
-								className="w-full ring-black ring-2 shadow-lg shadow-black hover:scale-110 duration-500 max-w-xs h-auto rounded-md mt-4"
-								src={`../images/${prediction}.jpg`}
-								alt={prediction}
+								src={`images/${prediction}.jpg`}
+								alt="Prediction"
+								className="mt-4 w-96 h-56 rounded-md shadow-md shadow-black hover:scale-105 duration-500 hover:shadow-lg"
 							/>
 						</>
 					) : (

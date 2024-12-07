@@ -1,21 +1,34 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import BaseLayout from "./BaseLayout";
-import Login from "./pages/Login"; // Import the Login component
-import Signup from "./pages/Signup"; // Import the Login component
-import QuickTry from "./pages/QuickTry"; // Import the Login component
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import QuickTry from "./pages/QuickTry";
+import Dashboard from "./pages/Dashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { LoadingProvider } from './context/LoadingContext';
 
 function App() {
 	return (
-		<BrowserRouter>
-			<Routes>
-				<Route path="/" element={<BaseLayout />}>
-					<Route index element={<Login />} />
-					<Route path="/login" element={<Login />} />
-					<Route path="/quicktry" element={<QuickTry />} />
-					<Route path="/signup" element={<Signup />} />
-				</Route>
-			</Routes>
-		</BrowserRouter>
+		<LoadingProvider>
+			<BrowserRouter>
+				<Routes>
+					<Route path="/" element={<BaseLayout />}>
+						<Route index element={<Navigate to="/dashboard" />} />
+						<Route path="/login" element={<Login />} />
+						<Route path="/signup" element={<Signup />} />
+						<Route path="/quicktry" element={<QuickTry />} />
+						<Route
+							path="/dashboard"
+							element={
+								<ProtectedRoute>
+									<Dashboard />
+								</ProtectedRoute>
+							}
+						/>
+					</Route>
+				</Routes>
+			</BrowserRouter>
+		</LoadingProvider>
 	);
 }
 
