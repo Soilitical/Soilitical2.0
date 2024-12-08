@@ -60,7 +60,7 @@ const QuickTry = () => {
 			k_value: (Math.random() * 25 + 15).toFixed(2)
 		};
 		setFormData(randomFormData);
-		setTimeout(() => handleSubmit({ preventDefault: () => {} }), 0);
+		setTimeout(() => handleSubmit({ preventDefault: () => {} }), 100); // Slight delay
 	};
 
 	const resetForm = () => {

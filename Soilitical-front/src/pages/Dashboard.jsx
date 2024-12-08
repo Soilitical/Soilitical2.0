@@ -349,7 +349,7 @@ const Dashboard = () => {
 							<img
 								src={`/images/${prediction}.jpg`}
 								alt={prediction}
-								className="mt-4 max-w-md rounded-lg shadow-lg"
+								className="mt-4 w-96 h-56 rounded-md shadow-md shadow-black hover:scale-105 duration-500 hover:shadow-lg"
 							/>
 						</>
 					) : (

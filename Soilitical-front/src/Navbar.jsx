@@ -56,7 +56,7 @@ const Navbar = () => {
 					</li> */}
 					<li>
 						<Link
-							to="/live"
+							to="#"
 							className="hover:text-green-500 transition flex items-center"
 							onClick={showLoader}
 						>

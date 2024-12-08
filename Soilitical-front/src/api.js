@@ -16,7 +16,6 @@ export const registerUser = (data) =>
 		password: data.password,
 		confirm_password: data.confirm_password // Include confirm_password
 	});
-
 export const obtainToken = (data) => api.post("api/token/", data);
 export const refreshToken = (data) => api.post("api/token/refresh/", data);
 
