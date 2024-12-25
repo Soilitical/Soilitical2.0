@@ -11,7 +11,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { registerUser, obtainToken, setAuthToken } from "../api";
 import LoadingIndicator from "./LoadingIndicator";
 import { useLoading } from "../context/LoadingContext";
-import CustomLink from './CustomLink';
+import CustomLink from "./CustomLink";
 
 function Form({ method, showConfirmPassword, error, setError }) {
 	const [username, setUsername] = useState("");
@@ -64,19 +64,22 @@ function Form({ method, showConfirmPassword, error, setError }) {
 	};
 
 	return (
-		<div className="bg-white shadow-lg p-8 rounded-md max-w-md w-11/12 md:w-full">
-			<h2 className="text-3xl font-semibold mb-6 text-gray-800">
+		<div className="bg-white shadow-lg p-6 rounded-md max-w-md w-full mx-auto">
+			<h2 className="text-2xl font-semibold mb-4 text-gray-800 text-center">
 				{method === "login" ? "Login" : "Sign Up"}
 			</h2>
+
 			{/* Error Message */}
 			{error && (
-				<div className="bg-red-500 text-white p-3 mb-4 rounded-md">
+				<div className="bg-red-500 text-white p-3 mb-4 rounded-md text-center">
 					<p>
 						<FontAwesomeIcon icon={faExclamationTriangle} /> {error}
 					</p>
 				</div>
 			)}
+
 			<form onSubmit={handleSubmit} className="space-y-4">
+				{/* Username Field */}
 				<div className="relative">
 					<label
 						htmlFor="username"
@@ -89,7 +92,7 @@ function Form({ method, showConfirmPassword, error, setError }) {
 						id="username"
 						value={username}
 						onChange={(e) => setUsername(e.target.value)}
-						className="block w-full px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 text-gray-700"
+						className="block w-full px-4 py-2 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm border-gray-300 text-gray-700"
 						required
 					/>
 					<FontAwesomeIcon
@@ -97,6 +100,8 @@ function Form({ method, showConfirmPassword, error, setError }) {
 						className="absolute top-3 right-4 text-gray-500"
 					/>
 				</div>
+
+				{/* Password Field */}
 				<div className="relative">
 					<label
 						htmlFor="password"
@@ -109,7 +114,7 @@ function Form({ method, showConfirmPassword, error, setError }) {
 						id="password"
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
-						className="block w-full px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 text-gray-700"
+						className="block w-full px-4 py-2 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm border-gray-300 text-gray-700"
 						required
 					/>
 					<FontAwesomeIcon
@@ -122,6 +127,8 @@ function Form({ method, showConfirmPassword, error, setError }) {
 						onClick={() => togglePasswordVisibility("password")}
 					/>
 				</div>
+
+				{/* Confirm Password Field */}
 				{showConfirmPassword && (
 					<div className="relative">
 						<label
@@ -135,7 +142,7 @@ function Form({ method, showConfirmPassword, error, setError }) {
 							id="confirmPassword"
 							value={confirmPassword}
 							onChange={(e) => setConfirmPassword(e.target.value)}
-							className="block w-full px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 text-gray-700"
+							className="block w-full px-4 py-2 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm border-gray-300 text-gray-700"
 							required
 						/>
 						<FontAwesomeIcon
@@ -149,30 +156,32 @@ function Form({ method, showConfirmPassword, error, setError }) {
 						/>
 					</div>
 				)}
+
+				{/* Loading Indicator */}
 				{loading && <LoadingIndicator />}
+
+				{/* Submit Button */}
 				<button
 					type="submit"
-					className="w-full bg-blue-500 text-white py-2 px-4 rounded-md transition duration-300 hover:bg-blue-600"
+					className="w-full bg-blue-500 text-white py-2 px-4 rounded-md transition duration-300 hover:bg-blue-600 text-sm font-semibold"
 				>
 					{method === "login" ? "Login" : "Sign Up"}
 				</button>
 			</form>
+
 			{/* Navigation Links */}
 			<div className="text-center mt-6">
 				{method === "login" ? (
-					<p className="text-gray-600">
-						Don't have an account?{" "}
-						<CustomLink to="/signup">Sign Up</CustomLink>
+					<p className="text-gray-600 text-sm">
+						Don't have an account? <CustomLink to="/signup">Sign Up</CustomLink>
 					</p>
 				) : (
-					<p className="text-gray-600">
-						Already have an account?{" "}
-						<CustomLink to="/login">Login</CustomLink>
+					<p className="text-gray-600 text-sm">
+						Already have an account? <CustomLink to="/login">Login</CustomLink>
 					</p>
 				)}
-				<p className="text-gray-600 mt-2">
-					Quick Try?{" "}
-					<CustomLink to="/quicktry">Click Here</CustomLink>
+				<p className="text-gray-600 text-sm mt-2">
+					Quick Try? <CustomLink to="/quicktry">Click Here</CustomLink>
 				</p>
 			</div>
 		</div>

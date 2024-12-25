@@ -60,7 +60,7 @@ const QuickTry = () => {
 			k_value: (Math.random() * 25 + 15).toFixed(2)
 		};
 		setFormData(randomFormData);
-		setTimeout(() => handleSubmit({ preventDefault: () => {} }), 100); // Slight delay
+		setTimeout(() => handleSubmit({ preventDefault: () => {} }), 1000); // Slight delay
 	};
 
 	const resetForm = () => {
@@ -77,10 +77,10 @@ const QuickTry = () => {
 	};
 
 	return (
-		<div className="p-6 w-full min-h-screen flex items-center justify-center bg-gray-800 text-white">
-			<div className="flex w-full max-w-6xl gap-8">
+		<div className="p-6 w-full min-h-screen flex flex-col items-center justify-center bg-gray-800 text-white">
+			<div className="flex flex-col w-full max-w-6xl gap-8 md:flex-row">
 				{/* Form Section */}
-				<div className="w-1/2">
+				<div className="w-full md:w-1/2">
 					<h1 className="text-4xl font-bold mb-4 text-center">
 						<span className="text-green-500">S</span>oilitical
 					</h1>
@@ -220,7 +220,7 @@ const QuickTry = () => {
 				</div>
 
 				{/* Prediction Section */}
-				<div className="w-1/2 ring-2 ring-black shadow-md shadow-black flex flex-col items-center justify-center bg-gray-700 p-4 rounded-md">
+				<div className="w-full md:w-1/2 ring-2 ring-black shadow-md shadow-black flex flex-col items-center justify-center bg-gray-700 p-4 rounded-md">
 					{error ? (
 						<p className="text-red-500">{error}</p>
 					) : prediction ? (
