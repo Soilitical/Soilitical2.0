@@ -7,7 +7,7 @@ import {
 	faEyeSlash,
 	faExclamationTriangle
 } from "@fortawesome/free-solid-svg-icons";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { registerUser, obtainToken, setAuthToken } from "../api";
 import LoadingIndicator from "./LoadingIndicator";
 import { useLoading } from "../context/LoadingContext";
@@ -64,96 +64,106 @@ function Form({ method, showConfirmPassword, error, setError }) {
 	};
 
 	return (
-		<div className="bg-white shadow-lg p-6 rounded-md max-w-md w-full mx-auto">
-			<h2 className="text-2xl font-semibold mb-4 text-gray-800 text-center">
-				{method === "login" ? "Login" : "Sign Up"}
+		<div className="relative bg-gradient-to-br from-emerald-900 to-[#0F766E] shadow-xl p-8 rounded-2xl max-w-md w-full mx-auto border-2 border-[#D4AF37]/20">
+			<h2 className="text-3xl font-bold mb-6 text-[#D4AF37] text-center tracking-tight">
+				{method === "login" ? "Dashboard Access" : "Register a New Account"}
 			</h2>
 
 			{/* Error Message */}
 			{error && (
-				<div className="bg-red-500 text-white p-3 mb-4 rounded-md text-center">
-					<p>
-						<FontAwesomeIcon icon={faExclamationTriangle} /> {error}
+				<div className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 p-3 mb-4 rounded-lg text-center">
+					<p className="text-[#D4AF37] font-medium">
+						<FontAwesomeIcon icon={faExclamationTriangle} className="mr-2" />
+						{error}
 					</p>
 				</div>
 			)}
 
-			<form onSubmit={handleSubmit} className="space-y-4">
+			<form onSubmit={handleSubmit} className="space-y-5">
 				{/* Username Field */}
-				<div className="relative">
+				<div className="relative group">
 					<label
 						htmlFor="username"
-						className="block text-sm font-medium text-gray-500"
+						className="block text-sm font-medium text-[#D4AF37]/80 mb-1"
 					>
 						Username
 					</label>
-					<input
-						type="text"
-						id="username"
-						value={username}
-						onChange={(e) => setUsername(e.target.value)}
-						className="block w-full px-4 py-2 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm border-gray-300 text-gray-700"
-						required
-					/>
-					<FontAwesomeIcon
-						icon={faUser}
-						className="absolute top-3 right-4 text-gray-500"
-					/>
+					<div className="relative">
+						<input
+							type="text"
+							id="username"
+							className="w-full px-4 py-3 bg-emerald-900/40 backdrop-blur-sm rounded-lg border border-[#D4AF37]/30 focus:border-[#D4AF37]/50 focus:ring-2 focus:ring-[#D4AF37]/30 text-[#D4AF37] placeholder-[#D4AF37]/50 transition-all duration-300"
+							value={username}
+							onChange={(e) => setUsername(e.target.value)}
+							placeholder="Enter your username"
+							required
+						/>
+						<FontAwesomeIcon
+							icon={faUser}
+							className="absolute right-4 top-4 text-[#D4AF37]/50 group-hover:text-[#D4AF37]/80 transition-colors"
+						/>
+					</div>
 				</div>
 
 				{/* Password Field */}
-				<div className="relative">
+				<div className="relative group">
 					<label
 						htmlFor="password"
-						className="block text-sm font-medium text-gray-500"
+						className="block text-sm font-medium text-[#D4AF37]/80 mb-1"
 					>
 						Password
 					</label>
-					<input
-						type={passwordVisible.password ? "text" : "password"}
-						id="password"
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-						className="block w-full px-4 py-2 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm border-gray-300 text-gray-700"
-						required
-					/>
-					<FontAwesomeIcon
-						icon={faLock}
-						className="absolute top-3 right-4 text-gray-500"
-					/>
-					<FontAwesomeIcon
-						icon={passwordVisible.password ? faEyeSlash : faEye}
-						className="absolute top-3 right-10 text-gray-500 cursor-pointer"
-						onClick={() => togglePasswordVisibility("password")}
-					/>
-				</div>
-
-				{/* Confirm Password Field */}
-				{showConfirmPassword && (
 					<div className="relative">
-						<label
-							htmlFor="confirmPassword"
-							className="block text-sm font-medium text-gray-500"
-						>
-							Confirm Password
-						</label>
 						<input
-							type={passwordVisible.confirmPassword ? "text" : "password"}
-							id="confirmPassword"
-							value={confirmPassword}
-							onChange={(e) => setConfirmPassword(e.target.value)}
-							className="block w-full px-4 py-2 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm border-gray-300 text-gray-700"
+							type={passwordVisible.password ? "text" : "password"}
+							id="password"
+							className="w-full px-4 py-3 bg-emerald-900/40 backdrop-blur-sm rounded-lg border border-[#D4AF37]/30 focus:border-[#D4AF37]/50 focus:ring-2 focus:ring-[#D4AF37]/30 text-[#D4AF37] placeholder-[#D4AF37]/50 transition-all duration-300"
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+							placeholder="Enter your password"
 							required
 						/>
 						<FontAwesomeIcon
 							icon={faLock}
-							className="absolute top-3 right-4 text-gray-500"
+							className="absolute right-4 top-4 text-[#D4AF37]/50 group-hover:text-[#D4AF37]/80 transition-colors"
 						/>
 						<FontAwesomeIcon
-							icon={passwordVisible.confirmPassword ? faEyeSlash : faEye}
-							className="absolute top-3 right-10 text-gray-500 cursor-pointer"
-							onClick={() => togglePasswordVisibility("confirmPassword")}
+							icon={passwordVisible.password ? faEyeSlash : faEye}
+							className="absolute right-12 top-4 text-[#D4AF37]/50 cursor-pointer hover:text-[#D4AF37]/80 transition-colors"
+							onClick={() => togglePasswordVisibility("password")}
 						/>
+					</div>
+				</div>
+
+				{/* Confirm Password Field */}
+				{showConfirmPassword && (
+					<div className="relative group">
+						<label
+							htmlFor="confirmPassword"
+							className="block text-sm font-medium text-[#D4AF37]/80 mb-1"
+						>
+							Confirm Password
+						</label>
+						<div className="relative">
+							<input
+								type={passwordVisible.confirmPassword ? "text" : "password"}
+								id="confirmPassword"
+								className="w-full px-4 py-3 bg-emerald-900/40 backdrop-blur-sm rounded-lg border border-[#D4AF37]/30 focus:border-[#D4AF37]/50 focus:ring-2 focus:ring-[#D4AF37]/30 text-[#D4AF37] placeholder-[#D4AF37]/50 transition-all duration-300"
+								value={confirmPassword}
+								onChange={(e) => setConfirmPassword(e.target.value)}
+								placeholder="Confirm your password"
+								required
+							/>
+							<FontAwesomeIcon
+								icon={faLock}
+								className="absolute right-4 top-4 text-[#D4AF37]/50 group-hover:text-[#D4AF37]/80 transition-colors"
+							/>
+							<FontAwesomeIcon
+								icon={passwordVisible.confirmPassword ? faEyeSlash : faEye}
+								className="absolute right-12 top-4 text-[#D4AF37]/50 cursor-pointer hover:text-[#D4AF37]/80 transition-colors"
+								onClick={() => togglePasswordVisibility("confirmPassword")}
+							/>
+						</div>
 					</div>
 				)}
 
@@ -163,27 +173,45 @@ function Form({ method, showConfirmPassword, error, setError }) {
 				{/* Submit Button */}
 				<button
 					type="submit"
-					className="w-full bg-blue-500 text-white py-2 px-4 rounded-md transition duration-300 hover:bg-blue-600 text-sm font-semibold"
+					className="w-full py-3 bg-gradient-to-r from-[#D4AF37] to-[#0F766E] hover:from-[#0F766E] hover:to-[#D4AF37] text-white font-semibold rounded-lg transition-all duration-500 transform hover:scale-[1.02] shadow-lg hover:shadow-[#D4AF37]/20"
 				>
-					{method === "login" ? "Login" : "Sign Up"}
+					{method === "login" ? "Login" : "Plant Account"}
 				</button>
-			</form>
 
-			{/* Navigation Links */}
-			<div className="text-center mt-6">
-				{method === "login" ? (
-					<p className="text-gray-600 text-sm">
-						Don't have an account? <CustomLink to="/signup">Sign Up</CustomLink>
+				{/* Navigation Links */}
+				<div className="text-center mt-6 space-y-3">
+					{method === "login" ? (
+						<p className="text-xl text-[#D4AF37]/80 font-bold">
+							New User?{" "}
+							<CustomLink
+								to="/signup"
+								className="text-[#D4AF37] hover:text-[#0F766E]"
+							>
+								Make an Account
+							</CustomLink>
+						</p>
+					) : (
+						<p className="text-[#D4AF37]/80 text-xl font-bold">
+							Existing account?{" "}
+							<CustomLink
+								to="/login"
+								className="text-[#D4AF37] hover:text-[#0F766E]"
+							>
+								Access Dashboard
+							</CustomLink>
+						</p>
+					)}
+					<p className="text-[#D4AF37]/80 text-xl font-bold">
+						Quick analysis?{" "}
+						<CustomLink
+							to="/quicktry"
+							className="text-[#D4AF37] hover:text-[#0F766E]"
+						>
+							Try Now
+						</CustomLink>
 					</p>
-				) : (
-					<p className="text-gray-600 text-sm">
-						Already have an account? <CustomLink to="/login">Login</CustomLink>
-					</p>
-				)}
-				<p className="text-gray-600 text-sm mt-2">
-					Quick Try? <CustomLink to="/quicktry">Click Here</CustomLink>
-				</p>
-			</div>
+				</div>
+			</form>
 		</div>
 	);
 }

@@ -4,11 +4,10 @@ import React, { useState, useEffect } from "react";
 import { getUserHistory, createUserHistory, deleteUserHistory } from "../api";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode } from "jwt-decode"; // Make sure you have "jwt-decode" installed
 import { useLoading } from "../context/LoadingContext";
-
-// IMPORT OUR MAPPICKER COMPONENT
-import MapPicker from "../components/MapPicker"; // Adjust the path if needed
+import MapPicker from "../components/MapPicker"; // Adjust path as needed
+import { useTheme } from "../context/ThemeContext";
 
 // Some major Egyptian cities
 const EGYPT_CITIES = [
@@ -22,6 +21,68 @@ const EGYPT_CITIES = [
 	{ name: "Mansoura", lat: 31.0409, lon: 31.3785 }
 ];
 
+// ParticleField Component
+const ParticleField = ({ containerId }) => {
+	const [particles, setParticles] = useState([]);
+	const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+	useEffect(() => {
+		const newParticles = Array.from({ length: 20 }).map(() => ({
+			x: Math.random() * 100,
+			y: Math.random() * 100,
+			size: Math.random() * 3 + 1,
+			speed: Math.random() * 0.3 + 0.1
+		}));
+		setParticles(newParticles);
+
+		const container = document.getElementById(containerId);
+		if (!container) {
+			console.error(`Container with id ${containerId} not found.`);
+			return;
+		}
+
+		const handleMouseMove = (e) => {
+			const rect = container.getBoundingClientRect();
+			setMousePos({
+				x: ((e.clientX - rect.left) / rect.width) * 100,
+				y: ((e.clientY - rect.top) / rect.height) * 100
+			});
+		};
+
+		container.addEventListener("mousemove", handleMouseMove);
+		return () => container.removeEventListener("mousemove", handleMouseMove);
+	}, [containerId]);
+
+	return (
+		<>
+			{particles.map((particle, i) => {
+				const dx = mousePos.x - particle.x;
+				const dy = mousePos.y - particle.y;
+				const distance = Math.sqrt(dx * dx + dy * dy);
+				const angle = Math.atan2(dy, dx);
+
+				return (
+					<div
+						key={i}
+						className="absolute w-2 h-2 bg-[#D4AF37]/30 rounded-full pointer-events-none transition-all duration-1000"
+						style={{
+							left: `${particle.x}%`,
+							top: `${particle.y}%`,
+							width: `${particle.size}px`,
+							height: `${particle.size}px`,
+							transform: `translate(
+                ${distance < 20 ? Math.cos(angle) * 5 : 0}px,
+                ${distance < 20 ? Math.sin(angle) * 5 : 0}px
+              )`,
+							opacity: distance < 20 ? 0.7 : 0.3
+						}}
+					/>
+				);
+			})}
+		</>
+	);
+};
+
 const Dashboard = () => {
 	const navigate = useNavigate();
 	const [userHistory, setUserHistory] = useState([]);
@@ -32,31 +93,26 @@ const Dashboard = () => {
 	const [showProfileMenu, setShowProfileMenu] = useState(false);
 	const { showLoader } = useLoading();
 	const [expandedEntry, setExpandedEntry] = useState(null);
+	const { isDarkMode, toggleTheme } = useTheme();
 
-	// WEATHER STATE
+	// Weather
 	const [weatherData, setWeatherData] = useState(null);
 	const [weatherError, setWeatherError] = useState("");
 
-	// LOCATION OPTIONS
-	// "mylocation" => geolocation
-	// "egyptcity"  => pick from EGYPT_CITIES
-	// "custom"     => user typed city
-	// "map"        => pick location from interactive map
+	// Location
 	const [locationMethod, setLocationMethod] = useState("mylocation");
 	const [selectedEgyptCity, setSelectedEgyptCity] = useState("Cairo");
 	const [customCity, setCustomCity] = useState("");
-
-	// FOR MAP
 	const [mapLatLng, setMapLatLng] = useState(null);
 	const [showMapOverlay, setShowMapOverlay] = useState(false);
 
-	// FORM FOR PREDICTION
+	// Soil analysis form
 	const SOIL_TYPE_CHOICES = [
 		{ value: "loamy soil", label: "Loamy Soil" },
-		{ value: "clayey soil - loamy soil", label: "Clayey Soil - Loamy Soil" },
-		{ value: "well-drained - loamy soil", label: "Well-drained - Loamy Soil" },
+		{ value: "clayey soil - loamy soil", label: "Clayey-Loamy" },
+		{ value: "well-drained - loamy soil", label: "Well-Drained Loam" },
 		{ value: "sandy clay", label: "Sandy Clay" },
-		{ value: "sandy loam - silt loam", label: "Sandy Loam - Silt Loam" }
+		{ value: "sandy loam - silt loam", label: "Sandy or Silt Loam" }
 	];
 
 	const [formData, setFormData] = useState({
@@ -71,16 +127,13 @@ const Dashboard = () => {
 	const [quickTryLoading, setQuickTryLoading] = useState(false);
 	const [quickTryError, setQuickTryError] = useState("");
 
-	// -------------------------
-	// 1) Check auth, decode token & fetch user history
-	// -------------------------
+	// 1) Auth check + fetch history
 	useEffect(() => {
 		const token = localStorage.getItem("access_token");
 		if (!token) {
 			navigate("/login");
 			return;
 		}
-
 		try {
 			const decodedToken = jwtDecode(token);
 			setUsername(decodedToken.username || "User");
@@ -108,18 +161,13 @@ const Dashboard = () => {
 		fetchHistory();
 	}, [navigate]);
 
-	// -------------------------
 	// 2) Auto-Fetch Weather
-	//    whenever locationMethod, city, or mapLatLng changes
-	// -------------------------
 	useEffect(() => {
 		fetchWeather();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [locationMethod, selectedEgyptCity, customCity, mapLatLng]);
 
-	// -------------------------
-	// HELPERS: FETCH WEATHER
-	// -------------------------
+	// Fetch Weather helper
 	const fetchWeather = async () => {
 		setWeatherError("");
 		setWeatherData(null);
@@ -127,7 +175,6 @@ const Dashboard = () => {
 		const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
 		let url = "";
 
-		// If user typed nothing for customCity, skip
 		if (locationMethod === "custom" && !customCity.trim()) {
 			setWeatherError("Please enter a city name.");
 			return;
@@ -135,7 +182,7 @@ const Dashboard = () => {
 
 		try {
 			if (locationMethod === "mylocation") {
-				// Use geolocation
+				// use geolocation
 				if (!("geolocation" in navigator)) {
 					throw new Error("Geolocation is not supported by your browser.");
 				}
@@ -144,17 +191,12 @@ const Dashboard = () => {
 				});
 				const lat = position.coords.latitude;
 				const lon = position.coords.longitude;
-
 				url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`;
 			} else if (locationMethod === "egyptcity") {
-				// Use selected city from EGYPT_CITIES
-				const cityObj = EGYPT_CITIES.find(
-					(city) => city.name === selectedEgyptCity
-				);
+				const cityObj = EGYPT_CITIES.find((c) => c.name === selectedEgyptCity);
 				if (!cityObj) throw new Error("Invalid city selection.");
 				url = `https://api.openweathermap.org/data/2.5/weather?lat=${cityObj.lat}&lon=${cityObj.lon}&units=metric&appid=${apiKey}`;
 			} else if (locationMethod === "custom") {
-				// "custom" => user typed city name
 				url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
 					customCity
 				)}&units=metric&appid=${apiKey}`;
@@ -178,16 +220,21 @@ const Dashboard = () => {
 		}
 	};
 
-	// -------------------------
-	// HANDLERS
-	// -------------------------
+	// Handlers
+	const handleLogout = () => {
+		showLoader();
+		localStorage.removeItem("access_token");
+		localStorage.removeItem("refresh_token");
+		navigate("/login");
+	};
+
 	const handleLocationMethodChange = (e) => {
 		const chosenMethod = e.target.value;
 		setLocationMethod(chosenMethod);
 		setWeatherError("");
 		setWeatherData(null);
 
-		// If user picks map, open the overlay
+		// If user picks map, open overlay
 		if (chosenMethod === "map") {
 			setShowMapOverlay(true);
 		} else {
@@ -203,16 +250,12 @@ const Dashboard = () => {
 		setCustomCity(e.target.value);
 	};
 
-	// Called when user picks location on the map
 	const handleMapLocationSelected = (latlng) => {
 		setMapLatLng(latlng);
 	};
 
-	// Closes the map overlay
 	const handleCloseMap = () => {
 		setShowMapOverlay(false);
-		// If we are not going to keep the locationMethod = "map" after closing, you can revert
-		// setLocationMethod('mylocation');
 	};
 
 	const handleQuickTryChange = (e) => {
@@ -223,7 +266,56 @@ const Dashboard = () => {
 		}));
 	};
 
-	const generateRandomValuesAndSubmit = () => {
+	const submitData = async (data) => {
+		setQuickTryLoading(true);
+		setQuickTryError("");
+
+		try {
+			const token = localStorage.getItem("access_token");
+			if (!token) {
+				navigate("/login");
+				return;
+			}
+
+			// 1) Model prediction
+			const modelResponse = await axios.post(
+				import.meta.env.VITE_MODEL_URL,
+				data,
+				{
+					headers: { Authorization: `Bearer ${token}` }
+				}
+			);
+			const modelPrediction =
+				modelResponse.data.crop_name || modelResponse.data.prediction;
+			if (!modelPrediction) {
+				throw new Error("No prediction received from the model");
+			}
+
+			setPrediction(modelPrediction);
+
+			// 2) Save to history
+			const historyData = { ...data, prediction: modelPrediction };
+			const saveResponse = await createUserHistory(historyData);
+			setUserHistory((prev) => [...prev, saveResponse.data]);
+		} catch (err) {
+			console.error("Error:", err);
+			if (err.response?.status === 401) {
+				navigate("/login");
+			} else {
+				setQuickTryError("Failed to make a prediction. Try again.");
+			}
+		} finally {
+			setQuickTryLoading(false);
+		}
+	};
+
+	const handleQuickTrySubmit = async (e) => {
+		e.preventDefault();
+		await submitData(formData);
+	};
+
+	const generateRandomValuesAndSubmit = async () => {
+		if (quickTryLoading) return;
 		const randomFormData = {
 			soil_type:
 				SOIL_TYPE_CHOICES[Math.floor(Math.random() * SOIL_TYPE_CHOICES.length)]
@@ -235,7 +327,7 @@ const Dashboard = () => {
 			k_value: (Math.random() * 25 + 15).toFixed(2)
 		};
 		setFormData(randomFormData);
-		handleQuickTrySubmit({ preventDefault: () => {} });
+		await submitData(randomFormData);
 	};
 
 	const resetForm = () => {
@@ -251,63 +343,6 @@ const Dashboard = () => {
 		setQuickTryError("");
 	};
 
-	const handleLogout = () => {
-		showLoader();
-		localStorage.removeItem("access_token");
-		localStorage.removeItem("refresh_token");
-		navigate("/login");
-	};
-
-	const handleQuickTrySubmit = async (e) => {
-		e.preventDefault();
-		setQuickTryLoading(true);
-		setQuickTryError("");
-
-		try {
-			const token = localStorage.getItem("access_token");
-			if (!token) {
-				navigate("/login");
-				return;
-			}
-
-			// 1) Get model prediction
-			const modelResponse = await axios.post(
-				import.meta.env.VITE_MODEL_URL,
-				formData,
-				{
-					headers: {
-						Authorization: `Bearer ${token}`
-					}
-				}
-			);
-
-			const modelPrediction =
-				modelResponse.data.crop_name || modelResponse.data.prediction;
-			if (!modelPrediction) {
-				throw new Error("No prediction received from the model");
-			}
-
-			setPrediction(modelPrediction);
-
-			// 2) Save to user's history
-			const historyData = {
-				...formData,
-				prediction: modelPrediction
-			};
-			const saveResponse = await createUserHistory(historyData);
-			setUserHistory((prev) => [...prev, saveResponse.data]);
-		} catch (err) {
-			console.error("Error:", err);
-			if (err.response?.status === 401) {
-				navigate("/login");
-			} else {
-				setQuickTryError("Failed to make a prediction. Try again.");
-			}
-		} finally {
-			setQuickTryLoading(false);
-		}
-	};
-
 	const handleDeleteEntry = async (entryId) => {
 		try {
 			await deleteUserHistory(entryId);
@@ -317,25 +352,22 @@ const Dashboard = () => {
 		}
 	};
 
-	// HELPER: Weather Emoji
 	const getWeatherEmoji = (description) => {
 		if (!description) return "❓";
-		const lowerDesc = description.toLowerCase();
-		if (lowerDesc.includes("rain")) return "🌧️";
-		if (lowerDesc.includes("drizzle")) return "🌦️";
-		if (lowerDesc.includes("clear")) return "☀️";
-		if (lowerDesc.includes("cloud")) return "☁️";
-		if (lowerDesc.includes("snow")) return "❄️";
-		if (lowerDesc.includes("thunder")) return "⛈️";
-		if (lowerDesc.includes("mist")) return "🌫️";
-		return "🌍"; // fallback emoji
+		const lower = description.toLowerCase();
+		if (lower.includes("rain")) return "🌧️";
+		if (lower.includes("drizzle")) return "🌦️";
+		if (lower.includes("clear")) return "☀️";
+		if (lower.includes("cloud")) return "☁️";
+		if (lower.includes("snow")) return "❄️";
+		if (lower.includes("thunder")) return "⛈️";
+		if (lower.includes("mist")) return "🌫️";
+		return "🌍";
 	};
 
-	// RENDER
 	if (loading) return <div>Loading...</div>;
 	if (error) return <div>Error: {error}</div>;
 
-	// For /data/2.5/weather
 	let weatherDisplay = "";
 	if (weatherData && weatherData.main) {
 		const { temp, humidity } = weatherData.main;
@@ -345,46 +377,44 @@ const Dashboard = () => {
 	} else if (weatherError) {
 		weatherDisplay = `Weather Unavailable: ${weatherError}`;
 	}
-
-	// This "mapWeatherOverlay" will be shown on the top-right corner in the MapPicker
-	const mapWeatherOverlay = weatherDisplay && (
-		<div className="text-sm font-medium text-gray-800">{weatherDisplay}</div>
-	);
+	const locationOptions = [
+		{ value: "mylocation", label: "My Location" },
+		{ value: "egyptcity", label: "Egyptian City" },
+		{ value: "custom", label: "Custom" },
+		{ value: "map", label: "Map" }
+	];
 
 	return (
-		<div
-			className="mx-auto px-4 py-8"
-			style={{
-				backgroundImage:
-					"url('/images/background.jpeg'), linear-gradient(to right, rgba(84,170,240,0.4), rgba(36,139,255,0.4), rgba(0,59,107,0.8))",
-				backgroundBlendMode: "overlay",
-				backgroundSize: "cover",
-				backgroundPosition: "center",
-				backgroundAttachment: "fixed"
-			}}
-		>
-			{/* Header Section */}
-			<div className="flex justify-between items-center mb-6 relative">
-				<h1 className="text-xl text-white sm:text-2xl md:text-3xl font-bold p-4">
-					{username}'s Dashboard! <span className="text-white">👋</span>
+		<div className="mx-auto px-4 md:px-8 py-8  min-h-screen">
+			{/* Top Bar */}
+			<div className="flex flex-col sm:flex-row justify-between items-center mb-6 relative">
+				<h1
+					className={`text-xl sm:text-2xl font-bold p-1 rounded-md shadow-lg ${
+						isDarkMode
+							? "text-[#f7ebc3] shadow-black"
+							: "text-slate-700 shadow-gray-400"
+					}`}
+				>
+					{username}'s Agricultural Hub{" "}
+					<span className={isDarkMode ? "text-white" : "text-gray-700"}>
+						🌾
+					</span>
 				</h1>
 
-				{/* Weather Display (Dashboard) */}
-				<div className="flex w-1/4 auto items-center text-lg text-center font-semibold m-auto">
-					<div className="bg-white p-2 rounded-md shadow-md shadow-black text-gray-800 ">
-						{weatherDisplay}
-					</div>
+				{/* Weather Block */}
+				<div className="bg-gray-700 p-3 rounded-lg backdrop-blur-sm my-3 sm:my-0">
+					<div className="text-white font-medium">{weatherDisplay}</div>
 				</div>
 
 				{/* Profile Menu */}
 				<div className="relative">
 					<button
 						onClick={() => setShowProfileMenu(!showProfileMenu)}
-						className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+						className="p-2 hover:bg-gray-700 rounded-full"
 					>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
-							className="h-10 w-10"
+							className="h-10 w-10 text-[#D4AF37]"
 							fill="none"
 							viewBox="0 0 24 24"
 							stroke="currentColor"
@@ -398,13 +428,13 @@ const Dashboard = () => {
 						</svg>
 					</button>
 					{showProfileMenu && (
-						<div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-10 border">
-							<div className="p-4 border-b">
-								<p className="font-medium">{username}</p>
+						<div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-xl z-10 border border-gray-600">
+							<div className="p-4 border-b border-gray-600">
+								<p className="font-medium text-[#D4AF37]">{username}</p>
 							</div>
 							<button
 								onClick={handleLogout}
-								className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+								className="w-full px-4 py-2 text-white hover:bg-gray-700 transition-colors flex items-center gap-2"
 							>
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
@@ -427,154 +457,150 @@ const Dashboard = () => {
 				</div>
 			</div>
 
-			{/* LOCATION PANEL */}
-			<div className="bg-gray-100/20 p-4 mb-6 rounded-md shadow-md shadow-slate-950 hover:scale-105 duration-500 text-center max-w-2xl m-auto">
-				<h2 className="text-xl font-semibold text-gray-700 mb-3">
-					Choose A Location📍
-				</h2>
+			{/* Choose Location */}
+			<div className="flex justify-center mb-6">
+				<div className="w-full md:w-1/2 p-6 bg-gradient-to-br from-gray-700 to-black rounded-2xl shadow-xl backdrop-blur-sm border border-gray-600">
+					<h2 className="text-xl font-semibold text-[#D4AF37] mb-4 text-center">
+						Choose A Location 📍
+					</h2>
+					<div className="flex flex-col sm:flex-row gap-6 justify-center">
+						{locationOptions.map(({ value, label }) => (
+							<label
+								key={value}
+								className="text-white font-bold flex items-center space-x-2 cursor-pointer"
+							>
+								<input
+									type="radio"
+									value={value}
+									checked={locationMethod === value}
+									onChange={handleLocationMethodChange}
+								/>
+								<span>{label}</span>
+							</label>
+						))}
+					</div>
 
-				{/* Radio Buttons with improved styling */}
-				<div className="flex flex-col sm:flex-row gap-8 m-auto max-w-2xl mb-4 justify-center">
-					{[
-						{ value: "mylocation", label: "Use My Location" },
-						{ value: "egyptcity", label: "Select an Egyptian City" },
-						{ value: "custom", label: "Type a City" },
-						{ value: "map", label: "Pick from Map" }
-					].map((option) => (
-						<label
-							key={option.value}
-							className="relative inline-flex items-center cursor-pointer"
-							onClick={() => {
-								// If user clicks the same "map" again, forcibly re-open
-								if (locationMethod === "map" && option.value === "map") {
-									setShowMapOverlay(true);
-								}
-							}}
-						>
+					{locationMethod === "egyptcity" && (
+						<div className="mt-4">
+							<select
+								className="w-full text-[#D4AF37] rounded-lg p-3 border border-gray-600"
+								value={selectedEgyptCity}
+								onChange={handleSelectedCityChange}
+							>
+								{EGYPT_CITIES.map((city) => (
+									<option
+										key={city.name}
+										value={city.name}
+										className="bg-gray-700"
+									>
+										{city.name}
+									</option>
+								))}
+							</select>
+						</div>
+					)}
+
+					{locationMethod === "custom" && (
+						<div className="mt-4">
 							<input
-								type="radio"
-								className="sr-only peer"
-								value={option.value}
-								checked={locationMethod === option.value}
-								onChange={handleLocationMethodChange}
+								type="text"
+								placeholder="Enter city..."
+								className="w-full bg-gray-700 text-[#D4AF37] rounded-lg p-3 border border-gray-600 placeholder-[#D4AF37]/50"
+								value={customCity}
+								onChange={handleCustomCityChange}
 							/>
-							<div className="w-16 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer-checked:bg-blue-600 transition-all peer-checked:after:translate-x-5 after:content-[''] after:absolute after:m-auto after:mt-1  after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all" />
-							<span className="ml-3 text-gray-700 hover:text-blue-600 transition-colors">
-								{option.label}
-							</span>
-						</label>
-					))}
+						</div>
+					)}
 				</div>
-
-				{/* City Selector (Egypt) */}
-				{locationMethod === "egyptcity" && (
-					<div className="mt-4">
-						<label className="block mb-2 text-sm font-medium text-gray-700">
-							Pick a city in Egypt:
-						</label>
-						<select
-							className="px-3 py-2 rounded-md border focus:outline-none bg-white"
-							value={selectedEgyptCity}
-							onChange={handleSelectedCityChange}
-						>
-							{EGYPT_CITIES.map((city) => (
-								<option key={city.name} value={city.name}>
-									{city.name}
-								</option>
-							))}
-						</select>
-					</div>
-				)}
-
-				{/* Custom City Input */}
-				{locationMethod === "custom" && (
-					<div className="mt-4">
-						<label className="block mb-2 text-sm font-medium text-gray-700">
-							Enter any city name:
-						</label>
-						<input
-							type="text"
-							placeholder="e.g., Paris"
-							className="px-3 py-2 rounded-md border focus:outline-none"
-							value={customCity}
-							onChange={handleCustomCityChange}
-						/>
-					</div>
-				)}
 			</div>
 
-			{/* Form and Prediction Section */}
+			{/* Main Content: Soil Analysis & Prediction */}
 			<div className="flex flex-col md:flex-row gap-8">
-				{/* Form Section */}
-				<div className="w-full bg-gray-800 text-white p-6 rounded-lg">
-					<h2 className="text-xl font-semibold mb-4 text-center">
-						Enter your readings or randomize some
+				{/* Soil Analysis Form */}
+				<div className="w-full md:w-1/2 bg-gradient-to-br from-gray-700 to-black p-6 rounded-2xl shadow-xl backdrop-blur-sm border border-gray-600">
+					<h2 className="text-2xl text-[#D4AF37] font-bold mb-6 text-center">
+						Soil Analysis Portal
 					</h2>
-					<form onSubmit={handleQuickTrySubmit} className="space-y-4">
+					<form onSubmit={handleQuickTrySubmit} className="space-y-6">
+						{/* Soil Type */}
 						<div>
-							<label className="block mb-2 text-sm font-medium">
-								Soil Type
-							</label>
+							<label className="block text-[#D4AF37] mb-3">Soil Type</label>
 							<select
+								className="w-full bg-gray-700 text-[#D4AF37] rounded-lg p-3 border border-gray-600"
 								name="soil_type"
 								value={formData.soil_type}
 								onChange={handleQuickTryChange}
-								className="w-full px-3 py-2 rounded-md shadow-sm bg-gray-700 text-white"
 							>
 								{SOIL_TYPE_CHOICES.map((option) => (
-									<option key={option.value} value={option.value}>
+									<option
+										key={option.value}
+										value={option.value}
+										className="bg-gray-700"
+									>
 										{option.label}
 									</option>
 								))}
 							</select>
 						</div>
 
+						{/* N, P, K, EC, Temperature */}
 						{["n_value", "p_value", "k_value", "ec_value", "temperature"].map(
 							(field) => (
 								<div key={field}>
-									<label className="block mb-2 capitalize">
-										{field.replace("_value", "").replace("_", " ")}
-										{field === "n_value" && " (kg)"}
-										{field === "p_value" && " (kg)"}
-										{field === "k_value" && " (kg)"}
-										{field === "ec_value" && " (dS/m)"}
-										{field === "temperature" && " (°C)"}
+									<label className="block text-[#D4AF37] mb-2 capitalize">
+										{field.replace(/_/g, " ").replace("value", "")}
+										<span className="text-[#D4AF37]/70 ml-2">
+											(
+											{
+												{
+													n_value: "kg/ha",
+													p_value: "kg/ha",
+													k_value: "kg/ha",
+													ec_value: "dS/m",
+													temperature: "°C"
+												}[field]
+											}
+											)
+										</span>
 									</label>
 									<input
 										type="number"
+										className="w-full bg-gray-700 text-[#D4AF37] rounded-lg p-3 border border-gray-600 
+                      focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent"
 										name={field}
 										value={formData[field]}
 										onChange={handleQuickTryChange}
-										className="w-full px-3 py-2 rounded-md shadow-sm bg-gray-700 text-white"
-										required
 										step="any"
+										required
 									/>
 								</div>
 							)
 						)}
 
-						<div className="flex justify-between mt-4">
+						{/* Action Buttons */}
+						<div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-between gap-4 mt-4">
 							<button
 								type="submit"
-								className={`px-4 py-2 bg-green-500 rounded-lg hover:bg-green-600 ${
-									quickTryLoading && "opacity-50 cursor-not-allowed"
-								}`}
 								disabled={quickTryLoading}
+								className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#0F766E] hover:from-[#0F766E] hover:to-[#D4AF37] 
+                  text-white font-bold py-3 rounded-lg transition-all duration-500 shadow-lg"
 							>
-								{quickTryLoading ? "Loading..." : "Submit"}
+								{quickTryLoading ? "Analyzing..." : "Generate Insights"}
 							</button>
 							<button
 								type="button"
 								onClick={generateRandomValuesAndSubmit}
-								className="px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600"
 								disabled={quickTryLoading}
+								className="bg-[#D4AF37]/20 hover:bg-[#D4AF37]/30 text-[#D4AF37] font-bold py-3 px-6 
+                  rounded-lg transition-colors duration-300 border border-[#D4AF37]/30"
 							>
 								Randomize
 							</button>
 							<button
 								type="button"
 								onClick={resetForm}
-								className="px-4 py-2 bg-gray-500 rounded-lg hover:bg-gray-600"
+								className="bg-[#D4AF37]/20 hover:bg-[#D4AF37]/30 text-[#D4AF37] font-bold py-3 px-6 
+                  rounded-lg transition-colors duration-300 border border-[#D4AF37]/30"
 							>
 								Clear
 							</button>
@@ -582,160 +608,188 @@ const Dashboard = () => {
 					</form>
 				</div>
 
-				{/* Prediction Section */}
-				<div className="w-full ring-2 ring-black shadow-md shadow-black flex flex-col items-center justify-center bg-gray-700 p-4 rounded-md min-h-[300px]">
+				{/* Prediction Display */}
+				<div
+					id="prediction-container"
+					className="w-full md:w-1/2 relative bg-gradient-to-br from-[#0F766E] to-black p-6 rounded-2xl shadow-xl 
+            min-h-[500px] flex flex-col items-center justify-center overflow-hidden"
+				>
+					{/* Particle Background */}
+					<div className="absolute inset-0 opacity-20 pointer-events-none">
+						<ParticleField containerId="prediction-container" />
+					</div>
+
+					{/* Error / Prediction / Placeholder */}
 					{quickTryError ? (
-						<p className="text-red-500">{quickTryError}</p>
+						<div className="bg-gray-700 p-6 rounded-xl backdrop-blur-sm border border-gray-600">
+							<p className="text-white text-center">⚠️ {quickTryError}</p>
+						</div>
 					) : prediction ? (
-						<>
-							<h3 className="text-xl font-semibold mb-2 text-white">
-								Prediction Result:
+						<div className="text-center space-y-6">
+							<h3 className="text-3xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#0F766E] bg-clip-text text-transparent">
+								Optimal Cultivation
 							</h3>
-							<p className="text-2xl text-white">{prediction}</p>
-							<img
-								src={`/images/${prediction}.jpg`}
-								alt={prediction}
-								className="mt-4 w-96 h-56 rounded-md shadow-md shadow-black hover:scale-105 duration-500 hover:shadow-lg"
-							/>
-						</>
+							<div className="relative group">
+								<img
+									src={`/images/${prediction}.jpg`}
+									alt={prediction}
+									className="w-full h-64 object-cover rounded-xl border-4 border-[#D4AF37]/30 
+                    transition-all duration-300 group-hover:border-[#D4AF37]/50"
+								/>
+								<div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl" />
+								<p className="absolute bottom-0 w-full text-2xl font-bold text-[#D4AF37] p-4">
+									{prediction}
+								</p>
+							</div>
+							<div className="bg-gray-700 p-4 rounded-xl backdrop-blur-sm border border-gray-600">
+								<p className="text-[#D4AF37] italic">
+									"This variety thrives in current soil conditions and local
+									climate parameters."
+								</p>
+							</div>
+						</div>
 					) : (
-						<p className="text-gray-400">
-							No prediction yet. Fill the form and submit.
-						</p>
+						<div className="text-[#D4AF37]/70 text-center">
+							<div className="animate-pulse">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									className="h-24 w-24 mx-auto mb-4"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M13 10V3L4 14h7v7l9-11h-7z"
+									/>
+								</svg>
+							</div>
+							<p className="text-xl">Awaiting Soil Analysis...</p>
+							<p className="mt-2">
+								Submit your soil parameters to receive cultivation insights
+							</p>
+						</div>
 					)}
 				</div>
 			</div>
 
-			{/* History Section */}
-			<div className="bg-white shadow-lg rounded-lg p-4 md:p-6 mt-6">
-				<div className="flex justify-between items-center mb-4">
-					<h2 className="text-xl font-semibold">Your Soil Test History</h2>
+			{/* Cultivation History */}
+			<div className="bg-gray-700 mt-8 p-6 rounded-2xl backdrop-blur-sm border border-gray-600">
+				<div className="flex flex-col sm:flex-row justify-between items-center mb-4">
+					<h2 className="text-xl text-[#D4AF37] font-bold">
+						Cultivation History
+					</h2>
 					<button
 						onClick={() => setShowHistory(!showHistory)}
-						className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+						className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors mt-3 sm:mt-0"
 					>
-						{showHistory ? "Hide History" : "Show History"}
+						{showHistory ? "Collapse" : "Expand"}
 					</button>
 				</div>
 
-				{showHistory &&
-					(userHistory.length === 0 ? (
-						<p>No history found. Try testing some soil samples!</p>
-					) : (
-						<div>
-							{/* Accordion for Mobile */}
-							<div className="block md:hidden space-y-4">
-								{userHistory.map((entry) => (
-									<div key={entry.id} className="border rounded-lg p-4">
+				{showHistory && (
+					<>
+						{userHistory.length === 0 ? (
+							<p className="text-gray-400 text-center">
+								No cultivation records found
+							</p>
+						) : (
+							<div className="space-y-4">
+								{userHistory
+									.slice()
+									.reverse()
+									.map((entry) => (
 										<div
-											className="flex justify-between cursor-pointer"
-											onClick={() =>
-												setExpandedEntry(
-													expandedEntry === entry.id ? null : entry.id
-												)
-											}
+											key={entry.id}
+											className="bg-gray-800 text-2xl font-bold p-4 rounded-lg border border-gray-600"
 										>
-											<h3 className="font-semibold">
-												{new Date(entry.timestamp).toLocaleDateString()}
-											</h3>
-											<span className="text-gray-600">{entry.soil_type}</span>
-										</div>
-										{expandedEntry === entry.id && (
-											<div className="mt-2">
-												<p>N: {entry.n_value}</p>
-												<p>P: {entry.p_value}</p>
-												<p>K: {entry.k_value}</p>
-												<p>EC: {entry.ec_value}</p>
-												<p>Temp: {entry.temperature}</p>
-												<p>Prediction: {entry.prediction}</p>
-												<img
-													src={`/images/${entry.prediction}.jpg`}
-													alt={entry.prediction}
-													className="w-20 h-20 object-cover rounded-lg shadow-md mt-2"
-												/>
-												<button
-													onClick={() => handleDeleteEntry(entry.id)}
-													className="mt-2 bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition-colors"
-												>
-													Delete
-												</button>
+											{/* Entry Header */}
+											<div
+												className="flex justify-between items-center cursor-pointer"
+												onClick={() =>
+													setExpandedEntry(
+														expandedEntry === entry.id ? null : entry.id
+													)
+												}
+											>
+												<div>
+													<h3 className="text-[#D4AF37] font-medium text-lg">
+														{new Date(entry.timestamp).toLocaleDateString()}
+													</h3>
+													<p className="text-gray-400 text-sm">
+														{entry.soil_type}
+													</p>
+												</div>
+												<span className="text-[#D4AF37]">
+													{expandedEntry === entry.id ? "▼" : "▶"}
+												</span>
 											</div>
-										)}
-									</div>
-								))}
-							</div>
 
-							{/* Table for Desktop */}
-							<div className="hidden md:block overflow-y-auto max-h-60">
-								<table className="min-w-full table-auto">
-									<thead>
-										<tr className="bg-gray-100">
-											<th className="px-4 py-2 text-center">Date</th>
-											<th className="px-4 py-2 text-center">Soil Type</th>
-											<th className="px-4 py-2 text-center">N</th>
-											<th className="px-4 py-2 text-center">P</th>
-											<th className="px-4 py-2 text-center">K</th>
-											<th className="px-4 py-2 text-center">EC</th>
-											<th className="px-4 py-2 text-center">Temp</th>
-											<th className="px-4 py-2 text-center">Prediction</th>
-											<th className="px-4 py-2 text-center">Actions</th>
-										</tr>
-									</thead>
-									<tbody>
-										{userHistory.map((entry) => (
-											<tr key={entry.id} className="border-b hover:bg-gray-50">
-												<td className="px-4 py-2 text-center">
-													{new Date(entry.timestamp).toLocaleDateString()}
-												</td>
-												<td className="px-4 py-2 text-center">
-													{entry.soil_type}
-												</td>
-												<td className="px-4 py-2 text-center">
-													{entry.n_value}
-												</td>
-												<td className="px-4 py-2 text-center">
-													{entry.p_value}
-												</td>
-												<td className="px-4 py-2 text-center">
-													{entry.k_value}
-												</td>
-												<td className="px-4 py-2 text-center">
-													{entry.ec_value}
-												</td>
-												<td className="px-4 py-2 text-center">
-													{entry.temperature}
-												</td>
-												<td className="px-4 py-2 text-center">
-													{entry.prediction}
-													<img
-														src={`/images/${entry.prediction}.jpg`}
-														alt={entry.prediction}
-														className="w-20 h-20 m-auto object-cover rounded-lg mt-2"
-													/>
-												</td>
-												<td className="px-4 py-2 text-center">
-													<button
-														onClick={() => handleDeleteEntry(entry.id)}
-														className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition-colors"
-													>
-														Delete
-													</button>
-												</td>
-											</tr>
-										))}
-									</tbody>
-								</table>
+											{/* Expanded Details */}
+											{expandedEntry === entry.id && (
+												<div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+													<div className="text-[#D4AF37]">
+														<span className="text-gray-400">N:</span>{" "}
+														{entry.n_value} kg/ha
+													</div>
+													<div className="text-[#D4AF37]">
+														<span className="text-gray-400">P:</span>{" "}
+														{entry.p_value} kg/ha
+													</div>
+													<div className="text-[#D4AF37]">
+														<span className="text-gray-400">K:</span>{" "}
+														{entry.k_value} kg/ha
+													</div>
+													<div className="text-[#D4AF37]">
+														<span className="text-gray-400">EC:</span>{" "}
+														{entry.ec_value} dS/m
+													</div>
+													<div className="text-[#D4AF37]">
+														<span className="text-gray-400">Temp:</span>{" "}
+														{entry.temperature}°C
+													</div>
+													<div className="col-span-1 sm:col-span-2 md:col-span-3">
+														<div className="flex items-center justify-between mt-4">
+															<div className="flex items-center space-x-4">
+																<img
+																	src={`/images/${entry.prediction}.jpg`}
+																	alt={entry.prediction}
+																	className="w-16 h-16 object-cover rounded-lg border border-gray-600"
+																/>
+																<span className="text-[#D4AF37] font-medium">
+																	{entry.prediction}
+																</span>
+															</div>
+															<button
+																onClick={() => handleDeleteEntry(entry.id)}
+																className="text-white p-3 bg-gradient-to-br rounded-lg from-red-400 to-red-800 hover:text-slate-400 hover:from-red-700 hover:duration-500 transition-colors"
+															>
+																Delete
+															</button>
+														</div>
+													</div>
+												</div>
+											)}
+										</div>
+									))}
 							</div>
-						</div>
-					))}
+						)}
+					</>
+				)}
 			</div>
 
-			{/* MAP OVERLAY (Full-Screen) */}
+			{/* Map Picker Overlay */}
 			<MapPicker
 				showMap={showMapOverlay}
 				onClose={handleCloseMap}
 				onLocationSelected={handleMapLocationSelected}
-				weatherInfo={mapWeatherOverlay} // pass our weather overlay
+				weatherInfo={
+					<div className="text-[#D4AF37] p-4 bg-gray-700 rounded-lg">
+						{weatherDisplay}
+					</div>
+				}
 			/>
 		</div>
 	);
