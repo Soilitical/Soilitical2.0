@@ -1,7 +1,8 @@
-# 🌱 **Soilitical Frontend**
+# 🌱 **Soilitical**
 
 Soilitical is an innovative AI-powered solution designed to assist landowners and farmers in making informed decisions about crop planting to maximize yield and profitability. By leveraging IoT sensors, Soilitical collects real-time data from agricultural fields and utilizes advanced machine learning models to recommend the most suitable crops based on various environmental factors.
 
+Live Demo: https://soilitical.netlify.app/
 ## 🚀 **Features**
 
 - **Modern User Interface**: A sleek and intuitive design that enhances user experience.
@@ -65,6 +66,17 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## 📞 **Contact**
 
 For any inquiries or support, please reach out to [your-email@example.com].
+
+Pictures From Soilitical:
+![image](https://github.com/user-attachments/assets/356962da-dbcc-42f8-b31f-a84590091bb6)
+![image](https://github.com/user-attachments/assets/414ae31c-3d81-4247-a427-6e0fbfdcb0e5)
+![image](https://github.com/user-attachments/assets/dc53aaad-3940-4169-a958-60ee324040ff)
+![image](https://github.com/user-attachments/assets/9dc8a3b5-2985-401a-ac55-cc2ec6061f1b)
+![image](https://github.com/user-attachments/assets/a713c28d-b7f8-44d1-988b-33068da66b3e)
+![image](https://github.com/user-attachments/assets/042c41d7-7d9a-4a84-995c-e729338b587e)
+![image](https://github.com/user-attachments/assets/78557ed9-b8e0-4ed7-9fa8-5705ef3ef39e)
+![image](https://github.com/user-attachments/assets/9da3f945-afe2-4b01-a6cd-fb659c3d13b5)
+![image](https://github.com/user-attachments/assets/ed0c9f28-17e2-49ee-8045-6ffd7bcaa180)
 
 ---
 
