@@ -64,7 +64,7 @@ function Form({ method, showConfirmPassword, error, setError }) {
 	};
 
 	return (
-		<div className="relative bg-gradient-to-br from-emerald-900 to-[#0F766E] shadow-xl p-8 rounded-2xl max-w-md w-full mx-auto border-2 border-[#D4AF37]/20">
+		<div className="relative bg-gradient-to-br from-emerald-900/75 to-[#0F766E] shadow-xl p-8 rounded-2xl max-w-md w-full mx-auto border-2 border-[#D4AF37]/20">
 			<h2 className="text-3xl font-bold mb-6 text-[#D4AF37] text-center tracking-tight">
 				{method === "login" ? "Dashboard Access" : "Register a New Account"}
 			</h2>

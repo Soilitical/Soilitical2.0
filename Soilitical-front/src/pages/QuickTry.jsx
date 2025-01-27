@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-// Add ParticleField component here
 const ParticleField = ({ containerId }) => {
 	const [particles, setParticles] = useState([]);
-	const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+	const [interactionPos, setInteractionPos] = useState({ x: 0, y: 0 });
 
 	useEffect(() => {
 		const newParticles = Array.from({ length: 20 }).map(() => ({
@@ -15,25 +14,43 @@ const ParticleField = ({ containerId }) => {
 		}));
 		setParticles(newParticles);
 
-		const handleMouseMove = (e) => {
+		const handleInteractionMove = (e) => {
 			const container = document.getElementById(containerId);
 			if (container) {
 				const rect = container.getBoundingClientRect();
-				setMousePos({
-					x: ((e.clientX - rect.left) / rect.width) * 100,
-					y: ((e.clientY - rect.top) / rect.height) * 100
+				let clientX, clientY;
+
+				if (e.touches) {
+					clientX = e.touches[0].clientX;
+					clientY = e.touches[0].clientY;
+				} else {
+					clientX = e.clientX;
+					clientY = e.clientY;
+				}
+
+				setInteractionPos({
+					x: ((clientX - rect.left) / rect.width) * 100,
+					y: ((clientY - rect.top) / rect.height) * 100
 				});
 			}
 		};
 
 		const containerElement = document.getElementById(containerId);
 		if (containerElement) {
-			containerElement.addEventListener("mousemove", handleMouseMove);
+			containerElement.addEventListener("mousemove", handleInteractionMove);
+			containerElement.addEventListener("touchmove", handleInteractionMove);
 		}
 
 		return () => {
 			if (containerElement) {
-				containerElement.removeEventListener("mousemove", handleMouseMove);
+				containerElement.removeEventListener(
+					"mousemove",
+					handleInteractionMove
+				);
+				containerElement.removeEventListener(
+					"touchmove",
+					handleInteractionMove
+				);
 			}
 		};
 	}, [containerId]);
@@ -41,8 +58,8 @@ const ParticleField = ({ containerId }) => {
 	return (
 		<>
 			{particles.map((particle, i) => {
-				const dx = mousePos.x - particle.x;
-				const dy = mousePos.y - particle.y;
+				const dx = interactionPos.x - particle.x;
+				const dy = interactionPos.y - particle.y;
 				const distance = Math.sqrt(dx * dx + dy * dy);
 				const angle = Math.atan2(dy, dx);
 
@@ -58,7 +75,7 @@ const ParticleField = ({ containerId }) => {
 							transform: `translate(${
 								distance < 20 ? Math.cos(angle) * 5 : 0
 							}px, 
-									 ${distance < 20 ? Math.sin(angle) * 5 : 0}px)`,
+                       ${distance < 20 ? Math.sin(angle) * 5 : 0}px)`,
 							opacity: distance < 20 ? 0.7 : 0.3
 						}}
 					/>
@@ -148,22 +165,24 @@ const QuickTry = () => {
 	};
 
 	return (
-		<div className="p-6 w-full min-h-screen flex flex-col items-center justify-center text-white">
-			<div className="flex flex-col w-full max-w-6xl gap-8 md:flex-row">
+		<div className="p-4 md:p-6 w-full min-h-screen flex flex-col items-center justify-center text-white">
+			<div className="flex flex-col w-full max-w-6xl gap-4 md:gap-8 md:flex-row">
 				{/* Form Section */}
 				<div className="w-full md:w-3/4">
 					<form
 						onSubmit={handleQuickTrySubmit}
-						className="space-y-6 bg-gradient-to-br from-gray-700 to-black p-6 rounded-2xl shadow-xl backdrop-blur-sm border border-gray-600"
+						className="space-y-4 md:space-y-6 bg-gradient-to-br from-gray-700/60 to-black/75 p-4 md:p-6 rounded-xl md:rounded-2xl shadow-xl backdrop-blur-sm border border-gray-600"
 					>
-						<h1 className="text-4xl font-bold mb-4 text-center">
+						<h1 className="text-3xl md:text-4xl font-bold mb-2 md:mb-4 text-center">
 							<span className="text-green-500">Soil</span>itical
 						</h1>
 
 						<div>
-							<label className="block text-[#D4AF37] mb-3">Soil Type</label>
+							<label className="block text-[#D4AF37] mb-2 md:mb-3">
+								Soil Type
+							</label>
 							<select
-								className="w-full bg-gray-700 text-[#D4AF37] rounded-lg p-3 border border-gray-600"
+								className="w-full bg-gray-700 text-[#D4AF37] rounded-lg p-2 md:p-3 border border-gray-600 text-sm md:text-base"
 								name="soil_type"
 								value={formData.soil_type}
 								onChange={handleChange}
@@ -183,9 +202,9 @@ const QuickTry = () => {
 						{["n_value", "p_value", "k_value", "ec_value", "temperature"].map(
 							(field) => (
 								<div key={field} className="group">
-									<label className="block text-[#D4AF37] mb-2 capitalize">
+									<label className="block text-[#D4AF37] mb-1 md:mb-2 capitalize text-sm md:text-base">
 										{field.replace(/_/g, " ").replace(" value", "")}
-										<span className="text-[#D4AF37]/70 ml-2">
+										<span className="text-[#D4AF37]/70 ml-2 text-xs md:text-sm">
 											(
 											{
 												{
@@ -201,8 +220,8 @@ const QuickTry = () => {
 									</label>
 									<input
 										type="number"
-										className="w-full bg-gray-700 text-[#D4AF37] rounded-lg p-3 border border-gray-600 
-											 focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent"
+										className="w-full bg-gray-700 text-[#D4AF37] rounded-lg p-2 md:p-3 border border-gray-600 
+                           focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent text-sm md:text-base"
 										name={field}
 										value={formData[field]}
 										onChange={handleChange}
@@ -213,29 +232,29 @@ const QuickTry = () => {
 							)
 						)}
 
-						<div className="flex justify-between gap-4 mt-8">
+						<div className="flex flex-col md:flex-row gap-2 md:gap-4 mt-6 md:mt-8">
 							<button
 								type="submit"
 								disabled={loading}
-								className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#0F766E] hover:from-[#0F766E] hover:to-[#D4AF37] 
-									 text-white font-bold py-3 rounded-lg transition-all duration-500 shadow-lg"
+								className="w-full md:flex-1 bg-gradient-to-r from-[#D4AF37] to-[#0F766E] hover:from-[#0F766E] hover:to-[#D4AF37] 
+                       text-white font-bold py-2 md:py-3 rounded-lg transition-all duration-500 shadow-lg text-sm md:text-base"
 							>
-								{loading ? "Analyzing..." : "Generate Insights"}
+								{loading ? "Analyzing..." : "Predict"}
 							</button>
 							<button
 								type="button"
 								onClick={generateRandomValuesAndSubmit}
 								disabled={loading}
-								className="bg-[#D4AF37]/20 hover:bg-[#D4AF37]/30 text-[#D4AF37] font-bold py-3 px-6 rounded-lg 
-									 transition-colors duration-300 border border-[#D4AF37]/30"
+								className="w-full md:w-auto bg-[#D4AF37]/20 hover:bg-[#D4AF37]/30 text-[#D4AF37] font-bold py-2 md:py-3 px-4 md:px-6 rounded-lg 
+                       transition-colors duration-300 border border-[#D4AF37]/30 text-sm md:text-base"
 							>
 								Randomize
 							</button>
 							<button
 								type="button"
 								onClick={resetForm}
-								className="bg-[#D4AF37]/20 hover:bg-[#D4AF37]/30 text-[#D4AF37] font-bold py-3 px-6 rounded-lg 
-									 transition-colors duration-300 border border-[#D4AF37]/30"
+								className="w-full md:w-auto bg-[#D4AF37]/20 hover:bg-[#D4AF37]/30 text-[#D4AF37] font-bold py-2 md:py-3 px-4 md:px-6 rounded-lg 
+                       transition-colors duration-300 border border-[#D4AF37]/30 text-sm md:text-base"
 							>
 								Clear
 							</button>
@@ -244,18 +263,19 @@ const QuickTry = () => {
 				</div>
 
 				<div
-					className="w-full relative bg-gradient-to-br from-[#0F766E] to-black p-8 rounded-2xl shadow-xl 
-							   min-h-[500px] flex flex-col items-center justify-center overflow-hidden"
+					id="prediction-container"
+					className="w-full relative bg-gradient-to-br from-[#0F766E]/60 to-black/75 p-4 md:p-8 rounded-xl md:rounded-2xl shadow-xl 
+                     min-h-[300px] md:min-h-[500px] flex flex-col items-center justify-center overflow-hidden"
 				>
 					<div className="absolute inset-0 opacity-20 pointer-events-none">
 						<ParticleField containerId="prediction-container" />
 					</div>
 
 					{error ? (
-						<div className="flex flex-col items-center space-y-4 bg-rose-900/30 p-6 rounded-xl backdrop-blur-sm border border-rose-900/50">
+						<div className="flex flex-col items-center space-y-2 md:space-y-4 bg-rose-900/30 p-4 md:p-6 rounded-xl backdrop-blur-sm border border-rose-900/50">
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
-								className="h-16 w-16 text-rose-400"
+								className="h-12 md:h-16 w-12 md:w-16 text-rose-400"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -267,38 +287,40 @@ const QuickTry = () => {
 									d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
 								/>
 							</svg>
-							<p className="text-rose-300 text-lg font-medium">{error}</p>
+							<p className="text-rose-300 text-sm md:text-lg font-medium text-center">
+								{error}
+							</p>
 						</div>
 					) : prediction ? (
-						<div className="text-center space-y-6">
-							<h3 className="text-3xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#0F766E] bg-clip-text text-transparent">
+						<div className="text-center space-y-4 md:space-y-6 w-full px-2">
+							<h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#0F766E] bg-clip-text text-transparent">
 								Optimal Cultivation
 							</h3>
-							<div className="relative group">
+							<div className="relative group w-full max-w-xs md:max-w-none mx-auto">
 								<img
 									src={`/images/${prediction}.jpg`}
 									alt={prediction}
-									className="w-full h-64 object-cover rounded-xl border-4 border-[#D4AF37]/30 
-									    transition-all duration-300 group-hover:border-[#D4AF37]/50"
+									className="w-full h-48 md:h-64 object-cover rounded-lg md:rounded-xl border-4 border-[#D4AF37]/30 
+                         transition-all duration-300 group-hover:border-[#D4AF37]/50"
 								/>
-								<div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl" />
-								<p className="absolute bottom-0 w-full text-2xl font-bold text-[#D4AF37] p-4">
+								<div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-lg md:rounded-xl" />
+								<p className="absolute bottom-0 w-full text-lg md:text-2xl font-bold text-[#D4AF37] p-3 md:p-4">
 									{prediction}
 								</p>
 							</div>
-							<div className="bg-gray-700 p-4 rounded-xl backdrop-blur-sm border border-gray-600">
-								<p className="text-[#D4AF37] italic">
+							<div className="bg-gray-700 p-3 md:p-4 rounded-lg md:rounded-xl backdrop-blur-sm border border-gray-600 mx-2">
+								<p className="text-[#D4AF37] italic text-sm md:text-base">
 									"This variety thrives in the current soil conditions and
 									climate profile."
 								</p>
 							</div>
 						</div>
 					) : (
-						<div className="text-[#D4AF37]/70 text-center">
+						<div className="text-[#D4AF37]/70 text-center text-sm md:text-base px-4">
 							<div className="animate-pulse">
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
-									className="h-20 w-20 mx-auto"
+									className="h-16 md:h-20 w-16 md:w-20 mx-auto"
 									fill="none"
 									viewBox="0 0 24 24"
 									stroke="currentColor"
@@ -311,8 +333,8 @@ const QuickTry = () => {
 									/>
 								</svg>
 							</div>
-							<p className="text-xl">Awaiting Analysis...</p>
-							<p className="mt-2">
+							<p className="text-lg md:text-xl mt-2">Awaiting Analysis...</p>
+							<p className="mt-1 md:mt-2 text-xs md:text-sm">
 								Submit soil readings for cultivation insights
 							</p>
 						</div>

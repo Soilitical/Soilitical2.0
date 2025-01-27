@@ -70,7 +70,7 @@ const Navbar = () => {
 				</nav>
 
 				{/* Mobile Menu Toggle */}
-				<div className="ml-12">
+				<div className="ml-12 sm:hidden">
 					<ThemeToggle />
 				</div>
 

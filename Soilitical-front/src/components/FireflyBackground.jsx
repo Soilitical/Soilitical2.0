@@ -1,26 +1,27 @@
 // src/components/FireflyBackground.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useTheme } from "../context/ThemeContext";
+
+const NATURE_ELEMENTS = {
+	dark: ["firefly", "moon-sparkle", "star", "orb"],
+	light: ["leaf", "flower", "sun-sparkle", "feather", "pollen"]
+};
 
 function FireflyBackground() {
 	const { isDarkMode } = useTheme();
 	const [elements, setElements] = useState([]);
 	const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+	const [isHovered, setIsHovered] = useState(false);
+	const NUM_ELEMENTS = isDarkMode ? 120 : 80;
 
-	useEffect(() => {
-		const NUM_ELEMENTS = isDarkMode ? 120 : 80;
-		const natureElements = {
-			dark: ["firefly", "moon-sparkle", "star", "orb"],
-			light: ["leaf", "flower", "sun-sparkle", "feather", "pollen"]
-		};
-
-		const generateElement = () => {
+	const generateElement = useCallback(
+		(initialOpacity = 1) => {
 			const type = isDarkMode
-				? natureElements.dark[
-						Math.floor(Math.random() * natureElements.dark.length)
+				? NATURE_ELEMENTS.dark[
+						Math.floor(Math.random() * NATURE_ELEMENTS.dark.length)
 				  ]
-				: natureElements.light[
-						Math.floor(Math.random() * natureElements.light.length)
+				: NATURE_ELEMENTS.light[
+						Math.floor(Math.random() * NATURE_ELEMENTS.light.length)
 				  ];
 
 			return {
@@ -37,21 +38,38 @@ function FireflyBackground() {
 				driftX: isDarkMode ? Math.random() * 3 - 1.5 : Math.random() * 8 - 4,
 				driftY: isDarkMode ? Math.random() * 2 - 1 : Math.random() * 4 - 2,
 				speed: isDarkMode ? Math.random() * 1 + 0.5 : Math.random() * 3 + 1.5,
-				startTime: Date.now()
+				startTime: Date.now(),
+				initialOpacity
 			};
-		};
+		},
+		[isDarkMode]
+	);
 
-		setElements(Array.from({ length: NUM_ELEMENTS }, generateElement));
-
+	useEffect(() => {
+		setElements(Array.from({ length: NUM_ELEMENTS }, () => generateElement(1)));
 		const handleMouseMove = (e) => setMousePos({ x: e.clientX, y: e.clientY });
 		window.addEventListener("mousemove", handleMouseMove);
 		return () => window.removeEventListener("mousemove", handleMouseMove);
-	}, [isDarkMode]);
+	}, [generateElement, NUM_ELEMENTS]);
 
-	// Helper functions
+	useEffect(() => {
+		let animationFrameId;
+		const animate = () => {
+			setElements((currentElements) => {
+				const now = Date.now();
+				return currentElements.map((element) => {
+					return element;
+				});
+			});
+			animationFrameId = requestAnimationFrame(animate);
+		};
+		animate();
+		return () => cancelAnimationFrame(animationFrameId);
+	}, [generateElement]);
+
 	const getSize = (type) => {
 		const darkSizes = {
-			firefly: Math.random() * 8 + 6,
+			firefly: Math.random() * 10 + 8,
 			"moon-sparkle": Math.random() * 12 + 8,
 			star: Math.random() * 6 + 4,
 			orb: Math.random() * 15 + 10
@@ -70,18 +88,17 @@ function FireflyBackground() {
 
 	const getColor = (type) => {
 		const darkColors = {
-			firefly: "#E3D369",
-			"moon-sparkle": "#A8B5C4",
+			firefly: "#FFE769",
+			"moon-sparkle": "#B8C7D6",
 			star: "#FFFFFF",
-			orb: "#6B8C9E"
+			orb: "#7FA8C0"
 		};
 
-		// Adjusted light mode colors for better contrast
 		const lightColors = {
-			leaf: `hsl(${Math.random() * 40 + 100}, 80%, 50%)`, // Darker base color
+			leaf: `hsl(${Math.random() * 40 + 100}, 80%, 50%)`,
 			flower: `hsl(${Math.random() * 60 + 300}, 90%, 60%)`,
-			"sun-sparkle": "#FFD700", // Less intense yellow
-			feather: "#FFFFFF", // Pure white
+			"sun-sparkle": "#FFE55C",
+			feather: "#FFFFFF",
 			pollen: `hsl(${Math.random() * 60 + 50}, 80%, 60%)`
 		};
 
@@ -93,13 +110,10 @@ function FireflyBackground() {
 			? 2 + Math.random()
 			: 0.5 + Math.random();
 		const animations = {
-			// Dark mode animations
 			firefly: `dark-float ${8 * durationMultiplier}s infinite ease-in-out`,
 			"moon-sparkle": `dark-pulse ${10 * durationMultiplier}s infinite`,
 			star: `dark-twinkle ${12 * durationMultiplier}s infinite`,
 			orb: `orb-float ${15 * durationMultiplier}s infinite linear`,
-
-			// Light mode animations
 			leaf: `leaf-float ${4 * durationMultiplier}s infinite ease-in-out`,
 			flower: `sway ${3.5 * durationMultiplier}s infinite ease-in-out`,
 			"sun-sparkle": `sparkle ${2 * durationMultiplier}s infinite ease-in-out`,
@@ -109,15 +123,52 @@ function FireflyBackground() {
 		return animations[type];
 	};
 
+	const getCursorStyle = () => {
+		const baseSize = isDarkMode ? 120 : 80;
+		return {
+			width: baseSize + "px",
+			height: baseSize + "px",
+			background: isDarkMode
+				? "radial-gradient(circle, rgba(227,211,105,0.9) 0%, transparent 70%)"
+				: "radial-gradient(circle, rgba(255,240,100,0.4) 0%, transparent 80%)",
+			transform: `translate(-50%, -50%)`,
+			transition: "transform 0.3s ease-out, opacity 0.2s ease",
+			opacity: isHovered ? 0.8 : 0.6,
+			filter: isDarkMode ? "blur(10px)" : "blur(10px)"
+		};
+	};
+
+	useEffect(() => {
+		const handleMouseEnter = () => setIsHovered(true);
+		const handleMouseLeave = () => setIsHovered(false);
+
+		const container = document.querySelector(".firefly-container");
+		container?.addEventListener("mouseenter", handleMouseEnter);
+		container?.addEventListener("mouseleave", handleMouseLeave);
+
+		return () => {
+			container?.removeEventListener("mouseenter", handleMouseEnter);
+			container?.removeEventListener("mouseleave", handleMouseLeave);
+		};
+	}, []);
+
 	return (
 		<div
-			className={`absolute inset-0 pointer-events-none overflow-hidden z-0 ${
+			className={`firefly-container absolute inset-0 pointer-events-none overflow-hidden z-0 ${
 				isDarkMode
 					? "bg-[#0a0a12]"
 					: "bg-gradient-to-b from-sky-100 via-amber-100 to-sky-100"
 			}`}
 		>
-			{/* Reduced sun rays intensity */}
+			<div
+				className="absolute pointer-events-none transition-opacity"
+				style={{
+					left: `${mousePos.x}px`,
+					top: `${mousePos.y}px`,
+					...getCursorStyle()
+				}}
+			/>
+
 			{!isDarkMode && (
 				<div
 					className="absolute inset-0 animate-pulse-fast opacity-20"
@@ -142,40 +193,42 @@ function FireflyBackground() {
 				return (
 					<div
 						key={index}
-						className="absolute"
+						className="absolute transition-opacity duration-500 ease-out"
 						style={{
 							left: element.x + "%",
 							top: element.y + "%",
-							transform: `
-                translate(
-                  ${Math.cos(angle) * repel + element.driftX * time}px, 
-                  ${Math.sin(angle) * repel + element.driftY * time}px
-                )
-              `,
+							transform: `translate(
+                ${Math.cos(angle) * repel + element.driftX * time}px, 
+                ${Math.sin(angle) * repel + element.driftY * time}px
+              )`,
 							willChange: "transform"
 						}}
 					>
 						<div
-							className="absolute"
+							className="absolute transition-opacity duration-500 ease-out"
 							style={{
 								width: element.size,
 								height: element.size,
 								background: getElementBackground(element),
 								borderRadius: isDarkMode ? "50%" : getLightBorder(element.type),
-								boxShadow: !isDarkMode
-									? `0 0 6px 1px ${element.color}80`
-									: "none",
+								boxShadow:
+									isDarkMode && element.type === "firefly"
+										? `0 0 30px 10px ${element.color}80`
+										: !isDarkMode
+										? `0 0 6px 1px ${element.color}80`
+										: "none",
 								border: !isDarkMode ? `1px solid ${element.color}` : "none",
 								animation: element.animation,
-								transform: `
-                  rotate(${element.rotation + element.rotationSpeed * time}deg)
-                  ${!isDarkMode ? "scale(1.05)" : ""}
-                `,
+								transform: `rotate(${
+									element.rotation + element.rotationSpeed * time
+								}deg)
+                  ${!isDarkMode ? "scale(1.05)" : ""}`,
 								mixBlendMode: isDarkMode ? "screen" : "normal",
-								opacity: isDarkMode ? 0.85 : 0.95,
-								filter: isDarkMode
-									? ""
-									: "brightness(1) drop-shadow(0 0 2px rgba(0,0,0,0.2))",
+								opacity: element.initialOpacity,
+								filter:
+									isDarkMode && element.type === "firefly"
+										? `brightness(1.2) drop-shadow(0 0 15px ${element.color})`
+										: "brightness(1)",
 								willChange: "transform, opacity"
 							}}
 						/>
@@ -184,7 +237,6 @@ function FireflyBackground() {
 			})}
 
 			<style jsx>{`
-				/* Dark mode animations */
 				@keyframes dark-float {
 					0%,
 					100% {
@@ -194,7 +246,6 @@ function FireflyBackground() {
 						transform: translateY(-40px) rotate(180deg);
 					}
 				}
-
 				@keyframes dark-pulse {
 					0%,
 					100% {
@@ -206,7 +257,6 @@ function FireflyBackground() {
 						opacity: 1;
 					}
 				}
-
 				@keyframes dark-twinkle {
 					0%,
 					100% {
@@ -216,7 +266,6 @@ function FireflyBackground() {
 						opacity: 0.4;
 					}
 				}
-
 				@keyframes orb-float {
 					0% {
 						transform: translate(-50px, -30px);
@@ -228,8 +277,6 @@ function FireflyBackground() {
 						transform: translate(-50px, -30px);
 					}
 				}
-
-				/* Light mode animations */
 				@keyframes leaf-float {
 					0% {
 						transform: translate(-20px, 0) rotate(-15deg) scale(1);
@@ -244,7 +291,6 @@ function FireflyBackground() {
 						transform: translate(-20px, 0) rotate(-15deg) scale(1);
 					}
 				}
-
 				@keyframes sway {
 					0% {
 						transform: translateX(-20px) rotate(-10deg);
@@ -256,7 +302,6 @@ function FireflyBackground() {
 						transform: translateX(-20px) rotate(-10deg);
 					}
 				}
-
 				@keyframes sparkle {
 					0%,
 					100% {
@@ -268,7 +313,6 @@ function FireflyBackground() {
 						opacity: 1;
 					}
 				}
-
 				@keyframes feather-float {
 					0% {
 						transform: translateY(0) rotate(0deg) skew(0deg, 0deg);
@@ -280,7 +324,6 @@ function FireflyBackground() {
 						transform: translateY(0) rotate(360deg) skew(0deg, 0deg);
 					}
 				}
-
 				@keyframes pollen-drift {
 					0% {
 						transform: translate(0, 0) rotate(0deg);
@@ -298,49 +341,31 @@ function FireflyBackground() {
 						transform: translate(0, 0) rotate(360deg);
 					}
 				}
-
-				@keyframes pulse-fast {
-					0%,
-					100% {
-						opacity: 0.4;
-					}
-					50% {
-						opacity: 0.6;
-					}
-				}
 			`}</style>
 		</div>
 	);
 
 	function getElementBackground(element) {
-		if (isDarkMode) return element.color;
-
-		// Add darker gradients for better contrast
-		switch (element.type) {
-			case "leaf":
-				return `linear-gradient(45deg, 
-					${element.color} 0%, 
-					hsl(120, 80%, 40%) 100%)`;
-			case "flower":
-				return `radial-gradient(circle at 30% 30%, 
-					${element.color} 0%, 
-					hsl(0, 90%, 50%) 100%)`;
-			case "pollen":
-				return `radial-gradient(circle at 70% 30%, 
-					${element.color} 0%, 
-					hsl(60, 80%, 50%) 100%)`;
-			default:
-				return element.color;
+		if (isDarkMode && element.type === "firefly") {
+			return `radial-gradient(circle at 50% 50%, ${element.color}, transparent 70%)`;
 		}
+		if (!isDarkMode) {
+			switch (element.type) {
+				case "leaf":
+					return `linear-gradient(45deg, ${element.color} 0%, hsl(120, 80%, 40%) 100%)`;
+				case "flower":
+					return `radial-gradient(circle at 30% 30%, ${element.color} 0%, hsl(0, 90%, 50%) 100%)`;
+				case "pollen":
+					return `radial-gradient(circle at 70% 30%, ${element.color} 0%, hsl(60, 80%, 50%) 100%)`;
+				default:
+					return element.color;
+			}
+		}
+		return element.color;
 	}
 
 	function getLightBorder(type) {
-		switch (type) {
-			case "flower":
-				return "30%";
-			default:
-				return "10%";
-		}
+		return type === "flower" ? "30%" : "10%";
 	}
 }
 

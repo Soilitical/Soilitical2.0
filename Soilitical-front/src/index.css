@@ -90,3 +90,16 @@
 .animate-glow {
 	animation: glow 2s ease-in-out infinite;
 }
+.hover\:shadow-golden-glow:hover {
+	box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+}
+
+.hover\:shadow-red-glow:hover {
+	box-shadow: 0 4px 20px rgba(255, 0, 0, 0.3);
+}
+
+.transition-all {
+	transition-property: all;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: 300ms;
+}

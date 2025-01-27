@@ -21,68 +21,6 @@ const EGYPT_CITIES = [
 	{ name: "Mansoura", lat: 31.0409, lon: 31.3785 }
 ];
 
-// ParticleField Component
-const ParticleField = ({ containerId }) => {
-	const [particles, setParticles] = useState([]);
-	const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-	useEffect(() => {
-		const newParticles = Array.from({ length: 20 }).map(() => ({
-			x: Math.random() * 100,
-			y: Math.random() * 100,
-			size: Math.random() * 3 + 1,
-			speed: Math.random() * 0.3 + 0.1
-		}));
-		setParticles(newParticles);
-
-		const container = document.getElementById(containerId);
-		if (!container) {
-			console.error(`Container with id ${containerId} not found.`);
-			return;
-		}
-
-		const handleMouseMove = (e) => {
-			const rect = container.getBoundingClientRect();
-			setMousePos({
-				x: ((e.clientX - rect.left) / rect.width) * 100,
-				y: ((e.clientY - rect.top) / rect.height) * 100
-			});
-		};
-
-		container.addEventListener("mousemove", handleMouseMove);
-		return () => container.removeEventListener("mousemove", handleMouseMove);
-	}, [containerId]);
-
-	return (
-		<>
-			{particles.map((particle, i) => {
-				const dx = mousePos.x - particle.x;
-				const dy = mousePos.y - particle.y;
-				const distance = Math.sqrt(dx * dx + dy * dy);
-				const angle = Math.atan2(dy, dx);
-
-				return (
-					<div
-						key={i}
-						className="absolute w-2 h-2 bg-[#D4AF37]/30 rounded-full pointer-events-none transition-all duration-1000"
-						style={{
-							left: `${particle.x}%`,
-							top: `${particle.y}%`,
-							width: `${particle.size}px`,
-							height: `${particle.size}px`,
-							transform: `translate(
-                ${distance < 20 ? Math.cos(angle) * 5 : 0}px,
-                ${distance < 20 ? Math.sin(angle) * 5 : 0}px
-              )`,
-							opacity: distance < 20 ? 0.7 : 0.3
-						}}
-					/>
-				);
-			})}
-		</>
-	);
-};
-
 const Dashboard = () => {
 	const navigate = useNavigate();
 	const [userHistory, setUserHistory] = useState([]);
@@ -456,7 +394,6 @@ const Dashboard = () => {
 					)}
 				</div>
 			</div>
-
 			{/* Choose Location */}
 			<div className="flex justify-center mb-6">
 				<div className="w-full md:w-1/2 p-6 bg-gradient-to-br from-gray-700 to-black rounded-2xl shadow-xl backdrop-blur-sm border border-gray-600">
@@ -513,11 +450,10 @@ const Dashboard = () => {
 					)}
 				</div>
 			</div>
-
 			{/* Main Content: Soil Analysis & Prediction */}
 			<div className="flex flex-col md:flex-row gap-8">
 				{/* Soil Analysis Form */}
-				<div className="w-full md:w-1/2 bg-gradient-to-br from-gray-700 to-black p-6 rounded-2xl shadow-xl backdrop-blur-sm border border-gray-600">
+				<div className="w-full md:w-1/2 bg-gradient-to-br from-gray-700/60 to-black/75 p-6 rounded-2xl shadow-xl backdrop-blur-sm border border-gray-600">
 					<h2 className="text-2xl text-[#D4AF37] font-bold mb-6 text-center">
 						Soil Analysis Portal
 					</h2>
@@ -585,7 +521,7 @@ const Dashboard = () => {
 								className="flex-1 bg-gradient-to-r from-[#D4AF37] to-[#0F766E] hover:from-[#0F766E] hover:to-[#D4AF37] 
                   text-white font-bold py-3 rounded-lg transition-all duration-500 shadow-lg"
 							>
-								{quickTryLoading ? "Analyzing..." : "Generate Insights"}
+								{quickTryLoading ? "Analyzing..." : "Predict"}
 							</button>
 							<button
 								type="button"
@@ -611,14 +547,9 @@ const Dashboard = () => {
 				{/* Prediction Display */}
 				<div
 					id="prediction-container"
-					className="w-full md:w-1/2 relative bg-gradient-to-br from-[#0F766E] to-black p-6 rounded-2xl shadow-xl 
+					className="w-full md:w-1/2 relative bg-gradient-to-br from-[#0F766E]/60 to-black/75 p-6 rounded-2xl shadow-xl 
             min-h-[500px] flex flex-col items-center justify-center overflow-hidden"
 				>
-					{/* Particle Background */}
-					<div className="absolute inset-0 opacity-20 pointer-events-none">
-						<ParticleField containerId="prediction-container" />
-					</div>
-
 					{/* Error / Prediction / Placeholder */}
 					{quickTryError ? (
 						<div className="bg-gray-700 p-6 rounded-xl backdrop-blur-sm border border-gray-600">
@@ -674,36 +605,42 @@ const Dashboard = () => {
 					)}
 				</div>
 			</div>
-
 			{/* Cultivation History */}
-			<div className="bg-gray-700 mt-8 p-6 rounded-2xl backdrop-blur-sm border border-gray-600">
+			<div className="bg-gradient-to-br from-[#2c2c2c] via-[#1a1a1a] to-[#0a0a0a] mt-8 p-6 rounded-2xl backdrop-blur-sm border border-[#D4AF37]/30 shadow-2xl shadow-black/50 relative">
+				<div className="absolute inset-0 rounded-2xl border border-[#D4AF37]/10 pointer-events-none" />
 				<div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-					<h2 className="text-xl text-[#D4AF37] font-bold">
-						Cultivation History
+					<h2 className="text-2xl sm:text-3xl bg-gradient-to-r from-[#D4AF37] to-[#FFD700] bg-clip-text text-transparent font-bold tracking-wide">
+						Predictions History
 					</h2>
 					<button
 						onClick={() => setShowHistory(!showHistory)}
-						className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors mt-3 sm:mt-0"
+						className="mt-3 sm:mt-0 px-6 py-2 text-sm sm:text-base bg-gradient-to-br from-[#D4AF37] to-[#8B6914] hover:from-[#FFD700] hover:to-[#D4AF37] text-white/90 font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-golden-glow"
 					>
-						{showHistory ? "Collapse" : "Expand"}
+						{showHistory ? "Collapse History" : "Expand History"}
+						<span className="ml-2 text-lg">{showHistory ? "–" : "+"}</span>
 					</button>
 				</div>
 
 				{showHistory && (
-					<>
+					<div className="mt-6 transition-all duration-500 ease-out">
 						{userHistory.length === 0 ? (
-							<p className="text-gray-400 text-center">
-								No cultivation records found
-							</p>
+							<div className="flex flex-col items-center justify-center py-8 space-y-4">
+								<div className="text-[#D4AF37]/50 text-6xl sm:text-7xl">
+									<Icon name="Leaf" /> {/* Replace with your icon component */}
+								</div>
+								<p className="text-gray-400/80 italic text-lg sm:text-xl">
+									Begin your cultivation journey to see records here...
+								</p>
+							</div>
 						) : (
-							<div className="space-y-4">
+							<div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
 								{userHistory
 									.slice()
 									.reverse()
 									.map((entry) => (
 										<div
 											key={entry.id}
-											className="bg-gray-800 text-2xl font-bold p-4 rounded-lg border border-gray-600"
+											className="group bg-gradient-to-br from-[#1a1a1a] to-[#2d2d2d] p-4 rounded-xl border border-[#D4AF37]/20 hover:border-[#D4AF37]/40 transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-[#D4AF37]/10"
 										>
 											{/* Entry Header */}
 											<div
@@ -714,61 +651,96 @@ const Dashboard = () => {
 													)
 												}
 											>
-												<div>
-													<h3 className="text-[#D4AF37] font-medium text-lg">
-														{new Date(entry.timestamp).toLocaleDateString()}
+												<div className="space-y-1">
+													<h3 className="text-[#FFD700] font-medium text-lg sm:text-xl flex items-center">
+														<span className="text-[#D4AF37] mr-2 text-xl sm:text-2xl">
+															⏳
+														</span>
+														{new Date(entry.timestamp).toLocaleDateString(
+															undefined,
+															{
+																year: "numeric",
+																month: "long",
+																day: "numeric"
+															}
+														)}
 													</h3>
-													<p className="text-gray-400 text-sm">
-														{entry.soil_type}
+													<p className="text-gray-400/80 text-sm sm:text-base font-mono">
+														Soil: {entry.soil_type}
 													</p>
 												</div>
-												<span className="text-[#D4AF37]">
+												<span className="text-[#D4AF37] transform transition-transform duration-300 group-hover:scale-125 text-lg sm:text-xl">
 													{expandedEntry === entry.id ? "▼" : "▶"}
 												</span>
 											</div>
 
 											{/* Expanded Details */}
 											{expandedEntry === entry.id && (
-												<div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-													<div className="text-[#D4AF37]">
-														<span className="text-gray-400">N:</span>{" "}
-														{entry.n_value} kg/ha
+												<div className="mt-4 pt-4 border-t border-[#D4AF37]/20 space-y-6">
+													<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+														<div className="bg-[#0a0a0a] p-3 rounded-lg border border-[#D4AF37]/10">
+															<div className="text-[#D4AF37] text-xs sm:text-sm uppercase tracking-wide mb-1">
+																Nitrogen (N)
+															</div>
+															<div className="text-white/90 font-bold text-base sm:text-lg">
+																{entry.n_value} kg/ha
+															</div>
+														</div>
+														<div className="bg-[#0a0a0a] p-3 rounded-lg border border-[#D4AF37]/10">
+															<div className="text-[#D4AF37] text-xs sm:text-sm uppercase tracking-wide mb-1">
+																Phosphorus (P)
+															</div>
+															<div className="text-white/90 font-bold text-base sm:text-lg">
+																{entry.p_value} kg/ha
+															</div>
+														</div>
+														<div className="bg-[#0a0a0a] p-3 rounded-lg border border-[#D4AF37]/10">
+															<div className="text-[#D4AF37] text-xs sm:text-sm uppercase tracking-wide mb-1">
+																Potassium (K)
+															</div>
+															<div className="text-white/90 font-bold text-base sm:text-lg">
+																{entry.k_value} kg/ha
+															</div>
+														</div>
+														<div className="bg-[#0a0a0a] p-3 rounded-lg border border-[#D4AF37]/10">
+															<div className="text-[#D4AF37] text-xs sm:text-sm uppercase tracking-wide mb-1">
+																EC Value
+															</div>
+															<div className="text-white/90 font-bold text-base sm:text-lg">
+																{entry.ec_value} dS/m
+															</div>
+														</div>
 													</div>
-													<div className="text-[#D4AF37]">
-														<span className="text-gray-400">P:</span>{" "}
-														{entry.p_value} kg/ha
-													</div>
-													<div className="text-[#D4AF37]">
-														<span className="text-gray-400">K:</span>{" "}
-														{entry.k_value} kg/ha
-													</div>
-													<div className="text-[#D4AF37]">
-														<span className="text-gray-400">EC:</span>{" "}
-														{entry.ec_value} dS/m
-													</div>
-													<div className="text-[#D4AF37]">
-														<span className="text-gray-400">Temp:</span>{" "}
-														{entry.temperature}°C
-													</div>
-													<div className="col-span-1 sm:col-span-2 md:col-span-3">
-														<div className="flex items-center justify-between mt-4">
-															<div className="flex items-center space-x-4">
+
+													<div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 md:space-x-4">
+														<div className="flex items-center space-x-4 flex-1">
+															<div className="relative">
 																<img
 																	src={`/images/${entry.prediction}.jpg`}
 																	alt={entry.prediction}
-																	className="w-16 h-16 object-cover rounded-lg border border-gray-600"
+																	className="w-20 h-20 sm:w-36 sm:h-36 object-cover rounded-xl border-2 border-[#D4AF37]/30 shadow-md"
 																/>
-																<span className="text-[#D4AF37] font-medium">
+																<div className="absolute bottom-0 left-0 right-0 bg-black/80 text-center text-[#D4AF37] text-sm sm:text-base py-1 rounded-b-xl">
 																	{entry.prediction}
-																</span>
+																</div>
 															</div>
-															<button
-																onClick={() => handleDeleteEntry(entry.id)}
-																className="text-white p-3 bg-gradient-to-br rounded-lg from-red-400 to-red-800 hover:text-slate-400 hover:from-red-700 hover:duration-500 transition-colors"
-															>
-																Delete
-															</button>
+															<div className="space-y-1">
+																<div className="text-[#D4AF37] text-sm sm:text-base">
+																	Temperature
+																</div>
+																<div className="text-white/90 text-2xl sm:text-3xl font-bold">
+																	{entry.temperature}°C
+																</div>
+															</div>
 														</div>
+
+														<button
+															onClick={() => handleDeleteEntry(entry.id)}
+															className="px-6 py-2 text-sm sm:text-base bg-gradient-to-br from-red-600/90 to-red-800/90 hover:from-red-700 hover:to-red-900 text-white/90 rounded-lg transition-all duration-300 flex items-center space-x-2 hover:shadow-red-glow"
+														>
+															<span className="text-lg">🗑</span>
+															<span>Delete Record</span>
+														</button>
 													</div>
 												</div>
 											)}
@@ -776,10 +748,9 @@ const Dashboard = () => {
 									))}
 							</div>
 						)}
-					</>
+					</div>
 				)}
-			</div>
-
+			</div>{" "}
 			{/* Map Picker Overlay */}
 			<MapPicker
 				showMap={showMapOverlay}
