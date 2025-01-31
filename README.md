@@ -79,7 +79,8 @@ cd Soilitical-back
 
    and fill it with:
 
-```SECRET_KEY=your_django_secret_key_here
+```bash
+   SECRET_KEY=your_django_secret_key_here
    DEBUG=True
 ```
 
