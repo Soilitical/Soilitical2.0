@@ -57,7 +57,7 @@ To get started with Soilitical, follow these steps:
 
 # **Backend**
 
-6.**Open a new terminal**:
+6. **Open a new terminal**:
 
 ```bash
 cd Soilitical-back
@@ -70,24 +70,27 @@ cd Soilitical-back
 ```
 
 8. **Set Up SQLite Database**:
-   ```bash
+   
+```bash
    python manage.py makemigrations
    python manage.py migrate
-   ```
+```
+
 9. **Run the Django Server**:
-   ```bash
+```bash
    python manage.py runserver
-   ```
-10. **Environment Setup**
+```
+
+10.  **Environment Setup**
     Create a .env file in the backend directory's root:
 
-Soilitical-backend/
+   Soilitical-backend/
 
-├── manage.py
+   ├── manage.py
 
-├── .env <-- Here
+   ├── .env <-- Here
 
-and fill it with:
+   and fill it with:
 
 ```bash
    SECRET_KEY=your_django_secret_key_here
