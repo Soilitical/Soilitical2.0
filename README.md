@@ -70,9 +70,13 @@ cd Soilitical-back
    ```
 9. **Environment Setup**
    Create a .env file in the backend directory's root:
+
    Soilitical-backend/
+
    ├── manage.py
+
    ├── .env <-- Here
+
    and fill it with:
 
 ```SECRET_KEY=your_django_secret_key_here
