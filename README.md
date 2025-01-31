@@ -65,7 +65,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## 📞 **Contact**
 
-For any inquiries or support, please reach out to [your-email@example.com].
+For any inquiries or support, please reach out to [hasanabdelhady101@gmail.com].
 
 Pictures From Soilitical:
 ![image](https://github.com/user-attachments/assets/356962da-dbcc-42f8-b31f-a84590091bb6)
