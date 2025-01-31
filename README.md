@@ -6,7 +6,6 @@ Live Demo: https://soilitical.netlify.app/
 ## 🚀 **Features**
 
 - **Modern User Interface**: A sleek and intuitive design that enhances user experience.
-- **Real-Time Data Processing**: Utilizes IoT sensors to gather and analyze data from agricultural fields.
 - **AI Crop Recommendations**: Machine learning algorithms provide tailored crop suggestions for optimal yield.
 - **User-Friendly Experience**: Simplified navigation and interaction for all users, regardless of technical expertise.
 - **API Connection with the Backend**: Seamless integration with the Django backend to manage user accounts and process data efficiently.
