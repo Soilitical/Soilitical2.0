@@ -94,7 +94,7 @@ cd Soilitical-back
 
 - **Frontend**: React.js, Leaflet for mapping, and TailwindCSS for styling.
 - **Backend**: Django (not included in this repository).
-- **Machine Learning**: Utilizes machine learning models for crop recommendation.
+- **Machine Learning**: Utilizes machine learning model connecting to the app using an API, similar to: https://github.com/Soilitical/Soilitical-AI-Api.
 
 ## 🤝 **Contributing**
 
