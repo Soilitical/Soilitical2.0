@@ -25,7 +25,7 @@ To get started with Soilitical, follow these steps:
 1. **Clone the Repository**:
 
    ```bash
-   git clone [https://github.com/yourusername/soilitical-frontend.git](https://github.com/Soilitical/Soilitical2.0.git)
+   git clone https://github.com/Soilitical/Soilitical2.0.git
    cd Soilitical-front
    ```
 
