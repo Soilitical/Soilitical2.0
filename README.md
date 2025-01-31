@@ -58,10 +58,6 @@ To get started with Soilitical, follow these steps:
 
 We welcome contributions to Soilitical! If you have suggestions or improvements, please fork the repository and submit a pull request.
 
-## 📄 **License**
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
 ## 📞 **Contact**
 
 For any inquiries or support, please reach out to [hasanabdelhady101@gmail.com].
