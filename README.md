@@ -53,8 +53,6 @@ To get started with Soilitical, follow these steps:
    VITE_WEATHER_API_KEY="your_weather_api_key"
    ```
 
-````
-
 5. **Access the Application**: Open your browser and navigate to `http://localhost:3000`.
 
 # **Backend**
@@ -63,7 +61,7 @@ To get started with Soilitical, follow these steps:
 
 ```bash
 cd Soilitical-back
-````
+```
 
 7. **Install Python Dependencies**:
 
