@@ -3,6 +3,7 @@
 Soilitical is an innovative AI-powered solution designed to assist landowners and farmers in making informed decisions about crop planting to maximize yield and profitability. By leveraging IoT sensors, Soilitical collects real-time data from agricultural fields and utilizes advanced machine learning models to recommend the most suitable crops based on various environmental factors.
 
 Live Demo: https://soilitical.netlify.app/
+
 ## 🚀 **Features**
 
 - **Modern User Interface**: A sleek and intuitive design that enhances user experience.
@@ -24,9 +25,11 @@ To get started with Soilitical, follow these steps:
 1. **Clone the Repository**:
 
    ```bash
-   git clone https://github.com/yourusername/soilitical-frontend.git
-   cd soilitical-frontend
+   git clone [https://github.com/yourusername/soilitical-frontend.git](https://github.com/Soilitical/Soilitical2.0.git)
+   cd Soilitical-front
    ```
+
+# **Frontend**
 
 2. **Install Dependencies**:
 
@@ -42,6 +45,40 @@ To get started with Soilitical, follow these steps:
 
 4. **Access the Application**: Open your browser and navigate to `http://localhost:3000`.
 
+# **Backend**
+
+5.**Open a new terminal**:
+
+```bash
+cd Soilitical-back
+```
+
+6. **Install Python Dependencies**:
+
+```bash
+   pip install -r requirements.txt
+```
+
+7. **Set Up SQLite Database**:
+   ```bash
+   python manage.py makemigrations
+   python manage.py migrate
+   ```
+8. **Run the Django Server**:
+   ```bash
+   python manage.py runserver
+   ```
+9. **Environment Setup**
+   Create a .env file in the backend directory's root:
+   Soilitical-backend/
+   ├── manage.py
+   ├── .env <-- Here
+   and fill it with:
+
+```SECRET_KEY=your_django_secret_key_here
+   DEBUG=True
+```
+
 ## 📊 **Usage**
 
 - **User Registration**: Create an account to access personalized crop recommendations.
@@ -50,7 +87,7 @@ To get started with Soilitical, follow these steps:
 
 ## 🛠️ **Technologies Used**
 
-- **Frontend**: React.js, Leaflet for mapping, and CSS for styling.
+- **Frontend**: React.js, Leaflet for mapping, and TailwindCSS for styling.
 - **Backend**: Django (not included in this repository).
 - **Machine Learning**: Utilizes machine learning models for crop recommendation.
 
