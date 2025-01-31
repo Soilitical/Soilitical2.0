@@ -43,41 +43,53 @@ To get started with Soilitical, follow these steps:
    npm start
    ```
 
-4. **Access the Application**: Open your browser and navigate to `http://localhost:3000`.
+4. **Setup your .env file in the root of Soilitical-front**
+
+   .env
+
+   ```bash
+   VITE_API_URL= "http://127.0.0.1:8000/"
+   VITE_MODEL_URL = "https://example.modelapi.com/predict/"
+   VITE_WEATHER_API_KEY="your_weather_api_key"
+   ```
+
+````
+
+5. **Access the Application**: Open your browser and navigate to `http://localhost:3000`.
 
 # **Backend**
 
-5.**Open a new terminal**:
+6.**Open a new terminal**:
 
 ```bash
 cd Soilitical-back
-```
+````
 
-6. **Install Python Dependencies**:
+7. **Install Python Dependencies**:
 
 ```bash
    pip install -r requirements.txt
 ```
 
-7. **Set Up SQLite Database**:
+8. **Set Up SQLite Database**:
    ```bash
    python manage.py makemigrations
    python manage.py migrate
    ```
-8. **Run the Django Server**:
+9. **Run the Django Server**:
    ```bash
    python manage.py runserver
    ```
-9. **Environment Setup**
-   Create a .env file in the backend directory's root:
+10. **Environment Setup**
+    Create a .env file in the backend directory's root:
 
-   Soilitical-backend/
+Soilitical-backend/
 
-   ├── manage.py
+├── manage.py
 
-   ├── .env <-- Here
+├── .env <-- Here
 
-   and fill it with:
+and fill it with:
 
 ```bash
    SECRET_KEY=your_django_secret_key_here
