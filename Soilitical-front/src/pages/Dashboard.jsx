@@ -626,7 +626,6 @@ const Dashboard = () => {
 						{userHistory.length === 0 ? (
 							<div className="flex flex-col items-center justify-center py-8 space-y-4">
 								<div className="text-[#D4AF37]/50 text-6xl sm:text-7xl">
-									<Icon name="Leaf" /> {/* Replace with your icon component */}
 								</div>
 								<p className="text-gray-400/80 italic text-lg sm:text-xl">
 									Begin your cultivation journey to see records here...

@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "license": "MIT"
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -35,5 +35,5 @@
     "postcss": "^8.4.45",
     "tailwindcss": "^3.4.11",
     "vite": "^5.4.4"
-  },
+  }
 }
