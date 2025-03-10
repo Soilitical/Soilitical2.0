@@ -12,12 +12,6 @@ Live Demo: https://soilitical.netlify.app/
 - **API Connection with the Backend**: Seamless integration with the Django backend to manage user accounts and process data efficiently.
 - **Interactive Map Picker**: Users can select specific locations on a map to receive localized crop recommendations and insights.
 
-## 🌾 **Current State**
-
-- **Home Page**: Features a navigation bar and a login form for user access.
-- **Map Picker Component**: Allows users to interactively select locations for crop recommendations.
-- **Firefly Background Animation**: Enhances the visual appeal of the application with dynamic background elements.
-
 ## 📦 **Installation**
 
 To get started with Soilitical, follow these steps:
